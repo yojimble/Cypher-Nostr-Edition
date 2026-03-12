@@ -34,14 +34,11 @@
       >
         {{ t("title") }}
       </h2>
-      <p class="mt-2 text-lg leading-8 text-gray-600 dark:text-white">
-        {{ t("subtitle") }}
-      </p>
     </div>
 
     <div
-      class="max-w-xl mt-12 rounded-md bg-yellow-50 p-4 max-w-3xl mx-auto border-2 border-black dark:border-white"
-      v-if="warning == 'error'"
+      class="mt-12 rounded-md bg-yellow-50 p-4 max-w-4xl mx-auto border-2 border-black dark:border-white"
+      v-if="warning === 'error'"
     >
       <div class="flex">
         <div class="flex-shrink-0">
@@ -53,16 +50,15 @@
         <div class="ml-3">
           <h3 class="text-sm font-medium text-yellow-800">{{ t("line1") }}</h3>
           <div class="mt-2 text-sm text-yellow-700">
-            <p v-if="message.value == ''">{{ t("line2") }}</p>
-            <p v-else>{{ t("line5") }}</p>
+            <p>{{ statusMessage }}</p>
           </div>
         </div>
       </div>
     </div>
 
     <div
-      class="max-w-xl mt-12 rounded-md bg-green-50 p-4 max-w-3xl mx-auto border-2 border-black dark:border-white"
-      v-if="warning == 'success'"
+      class="mt-12 rounded-md bg-green-50 p-4 max-w-4xl mx-auto border-2 border-black dark:border-white"
+      v-if="warning === 'success'"
     >
       <div class="flex">
         <div class="flex-shrink-0">
@@ -74,155 +70,123 @@
         <div class="ml-3">
           <h3 class="text-sm font-medium text-gray-800">{{ t("line3") }}</h3>
           <div class="mt-2 text-sm text-gray-700">
-            <p>{{ t("line4") }}</p>
+            <p>{{ statusMessage || t("line4") }}</p>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="mx-auto mt-16 max-w-xl sm:mt-20">
-      <div class="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
-        <div>
-          <label
-            for="first-name"
-            class="block text-sm font-semibold leading-6 text-gray-900 dark:text-white"
-            >{{ t("firstname") }}</label
-          >
-          <div class="mt-2.5">
-            <input
-              type="text"
-              name="first-name"
-              v-model="firstname"
-              autocomplete="given-name"
-              class="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-            />
-          </div>
-        </div>
-        <div>
-          <label
-            for="last-name"
-            class="block text-sm font-semibold leading-6 text-gray-900 dark:text-white"
-            >{{ t("lastname") }}</label
-          >
-          <div class="mt-2.5">
-            <input
-              type="text"
-              name="last-name"
-              v-model="lastname"
-              autocomplete="family-name"
-              class="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-            />
-          </div>
-        </div>
-        <div class="sm:col-span-2">
-          <label
-            for="company"
-            class="block text-sm font-semibold leading-6 text-gray-900 dark:text-white"
-            >{{ t("company") }}</label
-          >
-          <div class="mt-2.5">
-            <input
-              type="text"
-              name="company"
-              v-model="company"
-              autocomplete="organization"
-              class="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-            />
-          </div>
-        </div>
-        <div class="sm:col-span-2">
-          <label
-            for="email"
-            class="block text-sm font-semibold leading-6 text-gray-900 dark:text-white"
-            >{{ t("email") }}</label
-          >
-          <div class="mt-2.5">
-            <input
-              type="email"
-              name="email"
-              v-model="email"
-              autocomplete="email"
-              class="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-            />
-          </div>
-        </div>
-        <div class="sm:col-span-2">
-          <label
-            for="npub"
-            class="block text-sm font-semibold leading-6 text-gray-900 dark:text-white"
-            >{{ t("npub") }}</label
-          >
-          <div class="mt-2.5">
-            <input
-              type="text"
-              name="npub"
-              v-model="npub"
-              autocomplete="npub"
-              class="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-            />
-          </div>
-        </div>
-        <div class="sm:col-span-2">
-          <label
-            for="message"
-            class="block text-sm font-semibold leading-6 text-gray-900 dark:text-white"
-            >{{ t("message") }}</label
-          >
-          <div class="mt-2.5">
-            <textarea
-              name="message"
-              v-model="message"
-              rows="4"
-              class="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-            />
-          </div>
-        </div>
-        <SwitchGroup as="div" class="flex gap-x-4 sm:col-span-2">
-          <div class="flex h-6 items-center">
-            <Switch
-              v-model="agreed"
-              :class="[
-                agreed ? 'bg-indigo-600' : 'bg-gray-200',
-                'flex w-8 flex-none cursor-pointer rounded-full p-px ring-1 ring-inset ring-gray-900/5 transition-colors duration-200 ease-in-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600',
-              ]"
+    <div
+      class="mx-auto mt-16 max-w-6xl sm:mt-20 grid grid-cols-1 lg:grid-cols-5 gap-10 items-start"
+    >
+      <div class="lg:col-span-3">
+        <div class="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
+          <div>
+            <label
+              for="first-name"
+              class="block text-sm font-semibold leading-6 text-gray-900 dark:text-white"
+              >{{ t("firstname") }}</label
             >
-              <span class="sr-only">Agree to policies</span>
-              <span
-                aria-hidden="true"
-                :class="[
-                  agreed ? 'translate-x-3.5' : 'translate-x-0',
-                  'h-4 w-4 transform rounded-full bg-white shadow-sm ring-1 ring-gray-900/5 transition duration-200 ease-in-out',
-                ]"
+            <div class="mt-2.5">
+              <input
+                type="text"
+                name="first-name"
+                v-model="firstname"
+                autocomplete="given-name"
+                class="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
               />
-            </Switch>
+            </div>
           </div>
-          <SwitchLabel class="text-sm leading-6 text-black dark:text-white">
-            {{ t("consent") }}
-            {{ " " }}
 
-            <NuxtLink
-              :to="localePath('/tos')"
-              class="font-semibold text-black dark:text-white underline"
-              >{{ t("termsOfService") }}</NuxtLink
-            >.
-          </SwitchLabel>
-        </SwitchGroup>
+          <div class="sm:col-span-2">
+            <label
+              for="email"
+              class="block text-sm font-semibold leading-6 text-gray-900 dark:text-white"
+              >{{ t("email") }}</label
+            >
+            <div class="mt-2.5">
+              <input
+                type="email"
+                name="email"
+                v-model="email"
+                required
+                autocomplete="email"
+                class="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+              />
+            </div>
+          </div>
+
+          <div class="sm:col-span-2">
+            <label
+              for="npub"
+              class="block text-sm font-semibold leading-6 text-gray-900 dark:text-white"
+              >{{ t("npub") }}</label
+            >
+            <div class="mt-2.5">
+              <input
+                type="text"
+                name="npub"
+                v-model="npub"
+                autocomplete="npub"
+                class="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+              />
+            </div>
+          </div>
+
+          <div class="sm:col-span-2">
+            <label
+              for="message"
+              class="block text-sm font-semibold leading-6 text-gray-900 dark:text-white"
+              >{{ t("message") }}</label
+            >
+            <div class="mt-2.5">
+              <textarea
+                name="message"
+                v-model="message"
+                rows="4"
+                class="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-10">
+          <button
+            @click="sendForm()"
+            :disabled="isSubmitting"
+            class="block w-full rounded-md bg-indigo-600 px-3.5 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          >
+            {{ isSubmitting ? "Sending..." : t("letsTalk") }}
+          </button>
+        </div>
       </div>
-      <div class="mt-10">
-        <button
-          @click="sendForm()"
-          class="block w-full rounded-md bg-indigo-600 px-3.5 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+
+      <aside class="lg:col-span-2">
+        <div
+          class="rounded-2xl border border-gray-300 dark:border-gray-700 bg-white/80 dark:bg-black/50 p-6 shadow-xl lg:sticky lg:top-24"
         >
-          {{ t("letsTalk") }}
-        </button>
-      </div>
+          <p
+            class="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400"
+          >
+            Contact Details
+          </p>
+          <div class="mt-4 space-y-3">
+            <p
+              v-for="(line, index) in formattedContactLines"
+              :key="index"
+              class="text-sm sm:text-base font-medium text-gray-900 dark:text-gray-100 leading-relaxed"
+            >
+              {{ line }}
+            </p>
+          </div>
+        </div>
+      </aside>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { Switch, SwitchGroup, SwitchLabel } from "@headlessui/vue";
+import { computed, ref } from "vue";
 
 import {
   ExclamationTriangleIcon,
@@ -230,63 +194,189 @@ import {
 } from "@heroicons/vue/20/solid";
 
 const firstname = ref("");
-const lastname = ref("");
-const company = ref("");
 const email = ref("");
 const npub = ref("");
-
 const message = ref("");
-
 const warning = ref("");
-
-const formData = ref({
-  name: firstname,
-  lastname: lastname,
-  npub: npub,
-  company: company,
-  email: email,
-  message: message,
-  // Add more fields as needed
-});
+const statusMessage = ref("");
+const isSubmitting = ref(false);
 
 import data from "~/config/setup";
+import { bech32 } from "bech32";
+import { wrapEvent } from "nostr-tools/nip17";
+import { SimplePool } from "nostr-tools/pool";
+import { generateSecretKey } from "nostr-tools/pure";
 
-const agreed = ref(false);
+const contactLines = computed(() => {
+  const configured = data.contactdetails || {};
+  const fallback = [
+    `Nostr: ${data.nostradmin || ""}`,
+    `Lightning: ${data.lightningaddress || ""}`,
+    `Profile: ${data.socialnavigation?.nostr || ""}`,
+  ];
 
-function sendForm() {
-  if (agreed.value == false || message.value == "") {
-    window.scrollTo(0, 0);
-    console.log("Nothing");
-    warning.value = "error";
+  return [configured.line1, configured.line2, configured.line3]
+    .map((line, index) => line || fallback[index])
+    .filter(Boolean)
+    .slice(0, 3);
+});
+
+const cropNpub = (value) => {
+  if (!value.startsWith("npub1") || value.length <= 28) return value;
+  return `${value.slice(0, 14)}...${value.slice(-10)}`;
+};
+
+const formattedContactLines = computed(() => {
+  return contactLines.value.map((line) => {
+    if (!line.toLowerCase().startsWith("nostr:")) return line;
+    const value = line.split(":").slice(1).join(":").trim();
+    return `Nostr: ${cropNpub(value)}`;
+  });
+});
+
+const bytesToHex = (bytes) => {
+  return Array.from(bytes)
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+};
+
+const npubToHex = (npubValue) => {
+  const decoded = bech32.decode(npubValue);
+  const pubkeyBytes = bech32.fromWords(decoded.words);
+  return bytesToHex(Uint8Array.from(pubkeyBytes));
+};
+
+const buildMessage = () => {
+  return [
+    `name: ${firstname.value || ""}`,
+    `email: ${email.value || ""}`,
+    `sender npub: ${npub.value || ""}`,
+    `message: ${message.value || ""}`,
+  ].join("\n");
+};
+
+const sendNostrDm = async (payload) => {
+  const inboxRelays = (data.nostrInboxRelays || []).filter(Boolean);
+  if (!inboxRelays.length) {
+    throw new Error("No inbox relays configured for NIP-17 DM.");
   }
-  if (agreed.value == true && message.value != "") {
-    fetch(data.orderwebhook, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username: "The Contact Bot",
-        avatar_url: "https://i.imgur.com/zI4lCCJ.jpeg",
-        content: JSON.stringify(formData.value),
-      }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log("Success:", data); //Handle success response
-      })
-      .catch((error) => {
-        console.error("Error:", error); // Handle errors
-      });
 
-    warning.value = "success";
+  const recipientHex = npubToHex(data.nostradmin);
 
+  const senderSecretKey = generateSecretKey();
+  const wrappedEvent = wrapEvent(
+    senderSecretKey,
+    { publicKey: recipientHex, relayUrl: inboxRelays[0] },
+    payload,
+    "Cypher Contact",
+  );
+
+  const pool = new SimplePool();
+  try {
+    await Promise.any(pool.publish(inboxRelays, wrappedEvent));
+    return true;
+  } catch {
+    throw new Error("Unable to publish NIP-17 DM to inbox relays.");
+  } finally {
+    pool.close(inboxRelays);
+  }
+};
+
+const sendWebhook = async (payload) => {
+  const response = await fetch(data.orderwebhook, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      username: "The Contact Bot",
+      avatar_url: "https://i.imgur.com/zI4lCCJ.jpeg",
+      content: payload,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Webhook HTTP error: ${response.status}`);
+  }
+};
+
+async function sendForm() {
+  warning.value = "";
+  statusMessage.value = "";
+
+  const emailValue = email.value.trim();
+  const messageValue = message.value.trim();
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (messageValue === "" || emailValue === "") {
     window.scrollTo(0, 0);
+    warning.value = "error";
+    if (emailValue === "") {
+      statusMessage.value = "Email is required.";
+    } else if (messageValue === "") {
+      statusMessage.value = t("line2");
+    }
+    return;
+  }
+
+  if (!emailPattern.test(emailValue)) {
+    window.scrollTo(0, 0);
+    warning.value = "error";
+    statusMessage.value = "Please enter a valid email address.";
+    return;
+  }
+
+  isSubmitting.value = true;
+  const payload = buildMessage();
+  let dmSent = false;
+  let webhookSent = false;
+  let dmError = null;
+  let webhookError = null;
+
+  try {
+    await sendNostrDm(payload);
+    dmSent = true;
+  } catch (error) {
+    dmError = error;
+    console.error("NIP-17 DM send failed", error);
+  }
+
+  try {
+    await sendWebhook(payload);
+    webhookSent = true;
+  } catch (error) {
+    webhookError = error;
+    console.error("Webhook fallback failed", error);
+  }
+
+  try {
+    if (dmSent) {
+      warning.value = "success";
+      statusMessage.value = "Message sent over Nostr DM.";
+      window.scrollTo(0, 0);
+      return;
+    }
+
+    if (webhookSent) {
+      warning.value = "success";
+      statusMessage.value =
+        "DM failed, but your message was delivered via backup webhook.";
+      window.scrollTo(0, 0);
+      return;
+    }
+
+    const primaryError = dmError || webhookError;
+    throw primaryError instanceof Error
+      ? primaryError
+      : new Error("Failed to send message.");
+  } catch (error) {
+    console.error("Contact send failed", error);
+    warning.value = "error";
+    statusMessage.value =
+      error instanceof Error ? error.message : "Failed to send message.";
+    window.scrollTo(0, 0);
+  } finally {
+    isSubmitting.value = false;
   }
 }
 
@@ -332,16 +422,16 @@ const { t } = useI18n({ useScope: "local" });
   },
   "en": {
     "title": "Contact Form",
-    "subtitle": "Choose what information you want to add",
-    "firstname": "First Name",
+    "subtitle": "Email and message are required",
+    "firstname": "Name",
     "lastname": "Last Name",
     "company": "Company",
     "email": "E-mail",
     "message": "Message",
-    "npub": "Npub",
+    "npub": "Npub (optional)",
     "consent": "By selecting this, you agree to our",
     "letsTalk": "Let's talk",
-    "termsOfService": "Terms of service",
+    "termsOfService": "Terms of service: GFY",
     "line1": "Something Went Wrong 🤯",
     "line2": "Looks like your Message is empty...",
     "line3": "Thanks for reaching out!",
