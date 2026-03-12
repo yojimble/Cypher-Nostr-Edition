@@ -1,9 +1,10 @@
 <script setup>
-import { onMounted, defineProps } from 'vue';
+import { onMounted } from "vue";
 
 // Load the Bitcoin Connect API and launch the modal
 const loadBitcoinConnect = async () => {
-  const { launchModal } = await import('https://esm.sh/@getalby/bitcoin-connect@3.5.3');
+  const { launchModal } =
+    await import("https://esm.sh/@getalby/bitcoin-connect@3.5.3");
   // launchModal()
 };
 
@@ -19,19 +20,20 @@ const props = defineProps({
   },
   title: {
     type: String,
-    default: 'Pay with Bitcoin', // Default value if not provided
+    default: "Pay with Bitcoin", // Default value if not provided
   },
   preimage: {
     type: String,
     default: "",
   },
 });
-
 </script>
 
 <template>
-
-  <bc-pay-button :title="props.title" :invoice="props.invoice" :preimage="props.preimage">
+  <bc-pay-button
+    :title="props.title"
+    :invoice="props.invoice"
+    :preimage="props.preimage"
+  >
   </bc-pay-button>
-
 </template>

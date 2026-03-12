@@ -1,11 +1,16 @@
 <script setup>
-const { data } = await useAsyncData("home", () =>
-  queryContent("articles")
-    .where({ featured: true, _draft: false })
-    .sort({ datetime: -1 })
-    .limit(3)
-    .find()
-);
+const { data } = await useAsyncData("home", async () => {
+  const entries = await queryCollection("content")
+    .where("path", "LIKE", "/articles/%")
+    .all();
+
+  return entries
+    .filter((entry) => entry.featured && !entry.draft && !entry._draft)
+    .sort(
+      (a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime(),
+    )
+    .slice(0, 3);
+});
 
 import ticker from "~/config/setup";
 

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onBeforeMount, defineProps } from "vue";
+import { ref, onBeforeMount } from "vue";
 import data from "~/config/products";
 import ticker from "~/config/setup";
 import design from "~/config/design";
@@ -37,7 +37,7 @@ const { filtersList } = storeToRefs(filtersStore);
 
 const btcprice = await $fetch(
   "https://api.coinbase.com/v2/exchange-rates?currency=" +
-    ticker.fiat.denomination
+    ticker.fiat.denomination,
 );
 
 const btcprices = Number(btcprice.data.rates.BTC).toFixed(8);

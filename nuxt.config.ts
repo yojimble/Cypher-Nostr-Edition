@@ -1,26 +1,25 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   modules: [
-    '@nuxt/content',
-    '@nuxtjs/i18n',
+    "@nuxt/content",
+    "@nuxtjs/i18n",
     "@nuxtjs/color-mode",
-    '@nuxtjs/tailwindcss',
+    "@nuxtjs/tailwindcss",
     "@pinia/nuxt",
-
-],
-
-  alias: {
-    pinia: "/node_modules/@pinia/nuxt/node_modules/pinia/dist/pinia.mjs"
-  },
-
-  css: [
-    '@/assets/css/main.css',
   ],
 
+  css: ["@/assets/css/main.css"],
+
   components: {
-       global: true,
-       dirs: ['~/components']
-        },
+    global: true,
+    dirs: ["~/components"],
+  },
+
+  vue: {
+    compilerOptions: {
+      isCustomElement: (tag: string) => tag === "lightning-donate",
+    },
+  },
 
   i18n: {
     // baseUrl: process.env.BASE_URL || "http://localhost:3000",
@@ -29,49 +28,48 @@ export default defineNuxtConfig({
     locales: [
       {
         code: "da",
-        iso: "da-DA",
+        language: "da-DA",
         name: "Dansk",
         file: "da-DA.json",
       },
       {
         code: "de",
-        iso: "de-DE",
+        language: "de-DE",
         name: "Deutsch",
         file: "de-DE.json",
       },
       {
         code: "en",
-        iso: "en-GB",
+        language: "en-GB",
         name: "English",
         file: "en-GB.json",
       },
       {
         code: "es",
-        iso: "es-ES",
+        language: "es-ES",
         name: "Español",
         file: "es-ES.json",
       },
       {
         code: "fr",
-        iso: "fr-FR",
+        language: "fr-FR",
         name: "Français",
         file: "fr-FR.json",
       },
       {
         code: "pt",
-        iso: "pt-PT",
+        language: "pt-PT",
         name: "Português",
-        file: "pt-PT.json"
+        file: "pt-PT.json",
       },
       {
         code: "nl",
-        iso: "nl-NL",
+        language: "nl-NL",
         name: "Nederlands",
         file: "nl-NL.json",
       },
     ],
-    lazy: true,
-    langDir: "locales",
+    langDir: "../locales",
   },
 
   colorMode: {
@@ -81,5 +79,8 @@ export default defineNuxtConfig({
   },
 
   devtools: { enabled: true },
-  compatibilityDate: "2024-08-01"
-})
+  experimental: {
+    appManifest: false,
+  },
+  compatibilityDate: "2024-08-01",
+});

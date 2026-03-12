@@ -1,10 +1,15 @@
 <script setup>
-const { data } = await useAsyncData("", () =>
-  queryContent("/articles")
-    .where({ _draft: false })
-    .sort({ datetime: -1 })
-    .find()
-);
+const { data } = await useAsyncData("articles-feed", async () => {
+  const entries = await queryCollection("content")
+    .where("path", "LIKE", "/articles/%")
+    .all();
+
+  return entries
+    .filter((entry) => !entry.draft && !entry._draft)
+    .sort(
+      (a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime(),
+    );
+});
 
 const posts = data;
 

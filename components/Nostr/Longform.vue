@@ -1,6 +1,6 @@
 <script setup>
-import { ref, onMounted } from 'vue';
-import NDK from '@nostr-dev-kit/ndk';
+import { ref, onMounted } from "vue";
+import NDK from "@nostr-dev-kit/ndk";
 import setup from "~/config/setup";
 import { bech32 } from "bech32";
 
@@ -23,6 +23,15 @@ const isLoading = ref(true);
 const page = ref(0);
 const pageSize = 3; // Number of events per page
 
+const withTimeout = (promise, timeoutMs, label) => {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      setTimeout(() => reject(new Error(`${label} timed out`)), timeoutMs);
+    }),
+  ]);
+};
+
 const extractMediaUrl = (content) => {
   const regex = /(https?:\/\/[^\s]+(?:png|jpg|mp4))/g;
   const matches = content.match(regex);
@@ -32,45 +41,50 @@ const extractMediaUrl = (content) => {
 const cleanedContent = (content) => {
   const mediaRegex = /(https?:\/\/[^\s]+(?:png|jpg|mp4))/g;
   const urlRegex = /(https?:\/\/[^\s]+)/g;
-  const cleaned = content.replace(mediaRegex, '').replace(urlRegex, '').trim();
+  const cleaned = content.replace(mediaRegex, "").replace(urlRegex, "").trim();
   return cleaned;
 };
 
 const fetchEvents = async (pageNumber) => {
-  const relays = [
-    'wss://relay.damus.io'
-  ];
+  isLoading.value = true;
+  try {
+    const ndk = new NDK({ explicitRelayUrls: setup.relays });
+    await withTimeout(ndk.connect(), 8000, "Relay connection");
 
-  const ndk = new NDK({ explicitRelayUrls: setup.relays });
+    const filter = { kinds: [30023], authors: [skHex] };
+    const fetchedEvents = await withTimeout(
+      ndk.fetchEvents(filter),
+      10000,
+      "Longform fetch",
+    );
 
-  await ndk.connect(); // Connect to the relay
+    const newEvents = Array.from(fetchedEvents)
+      .slice(pageNumber * pageSize, (pageNumber + 1) * pageSize)
+      .map((event) => {
+        const imageTag = event.tags.find((tag) => tag[0] === "image");
+        const summaryTag = event.tags.find((tag) => tag[0] === "summary");
+        const titleTag = event.tags.find((tag) => tag[0] === "title");
+        return {
+          ...event,
+          image: imageTag ? imageTag[1] : null,
+          summary: summaryTag ? summaryTag[1] : null,
+          title: titleTag ? titleTag[1] : null,
+        };
+      });
 
-  // Define the filter
-  const filter = { kinds: [30023], authors: [skHex] };
-
-  const fetchedEvents = await ndk.fetchEvents(filter);
-  console.log(fetchedEvents);
-
-  // Process fetched events
-  const newEvents = Array.from(fetchedEvents).slice(pageNumber * pageSize, (pageNumber + 1) * pageSize).map(event => {
-    const imageTag = event.tags.find(tag => tag[0] === "image");
-    const summaryTag = event.tags.find(tag => tag[0] === "summary");
-    const titleTag = event.tags.find(tag => tag[0] === "title");
-    return {
-      ...event,
-      image: imageTag ? imageTag[1] : null,
-      summary: summaryTag ? summaryTag[1] : null,
-      title: titleTag ? titleTag[1] : null,
-    };
-  });
-
-  if (pageNumber === 0) {
-    events.value = newEvents;
-  } else {
-    events.value = [...events.value, ...newEvents];
+    if (pageNumber === 0) {
+      events.value = newEvents;
+    } else {
+      events.value = [...events.value, ...newEvents];
+    }
+  } catch (error) {
+    console.error("Failed to load longform events", error);
+    if (pageNumber === 0) {
+      events.value = [];
+    }
+  } finally {
+    isLoading.value = false;
   }
-
-  isLoading.value = false; // Set loading to false after fetching events
 };
 
 onMounted(async () => {
@@ -122,62 +136,62 @@ const { t } = useI18n({ useScope: "local" });
   <div class="bg-colorBgLight dark:bg-colorBgDark my-24">
     <div class="mx-auto max-w-7xl px-6 lg:px-8">
       <div class="mx-auto max-w-2xl text-center">
-        <h2 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+        <h2
+          class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl"
+        >
           {{ t("title") }}
         </h2>
         <!-- <p class="mt-2 text-lg leading-8 text-gray-900 dark:text-gray-100">
           {{ t("subtitle") }}
         </p> -->
       </div>
-      <div v-if="isLoading" class="text-center my-10">
-        <svg
-          class="animate-spin h-8 w-8 text-gray-500 dark:text-gray-300 mx-auto"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            class="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            stroke-width="4"
-          ></circle>
-          <path
-            class="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          ></path>
-        </svg>
-        <p class="mt-2 text-gray-500 dark:text-gray-300">Loading events...</p>
-      </div>
+      <UiLoadingBuffer v-if="isLoading" />
       <div v-else>
         <div v-if="events.length === 0" class="text-center mt-12">
           <p>No Notes found</p>
         </div>
-        <div v-else class="mx-auto grid max-w-2xl grid-cols-1 gap-x-8 gap-y-20 lg:mx-0 lg:max-w-none lg:grid-cols-3 mt-12">
-          <article v-for="(event, index) in events" :key="index" class="flex flex-col items-start">
+        <div
+          v-else
+          class="mx-auto grid max-w-2xl grid-cols-1 gap-x-8 gap-y-20 lg:mx-0 lg:max-w-none lg:grid-cols-3 mt-12"
+        >
+          <article
+            v-for="(event, index) in events"
+            :key="index"
+            class="flex flex-col items-start"
+          >
             <NuxtLink :to="localePath('/note/' + event.id)">
               <div class="relative w-full">
-                <img :src="event.image || '/placeholder-img.png'" alt="Event Image" class="aspect-[16/9] w-full rounded-2xl bg-gray-100 object-cover sm:aspect-[2/1] lg:aspect-[3/2] border dark:border-white" />
-                <div class="absolute inset-0 rounded-2xl ring-1 ring-inset ring-gray-900/10"></div>
+                <img
+                  :src="event.image || '/placeholder-img.png'"
+                  alt="Event Image"
+                  class="aspect-[16/9] w-full rounded-2xl bg-gray-100 object-cover sm:aspect-[2/1] lg:aspect-[3/2] border dark:border-white"
+                />
+                <div
+                  class="absolute inset-0 rounded-2xl ring-1 ring-inset ring-gray-900/10"
+                ></div>
               </div>
             </NuxtLink>
             <div class="max-w-xl">
               <div class="mt-8 flex items-center gap-x-4 text-xs">
-                <time :datetime="new Date(event.created_at * 1000).toISOString()" class="text-gray-500 dark:text-white">
+                <time
+                  :datetime="new Date(event.created_at * 1000).toISOString()"
+                  class="text-gray-500 dark:text-white"
+                >
                   {{ new Date(event.created_at * 1000).toLocaleDateString() }}
                 </time>
               </div>
               <div class="group relative">
-                <h3 class="mt-3 text-lg font-semibold leading-6 text-gray-900 dark:text-white dark:text-gray-100">
+                <h3
+                  class="mt-3 text-lg font-semibold leading-6 text-gray-900 dark:text-white dark:text-gray-100"
+                >
                   <NuxtLink :to="localePath('/note/' + event.id)">
                     <span class="absolute inset-0"></span>
                     {{ event.title }}
                   </NuxtLink>
                 </h3>
-                <p class="mt-5 line-clamp-3 text-sm leading-6 text-gray-900 dark:text-gray-100">
+                <p
+                  class="mt-5 line-clamp-3 text-sm leading-6 text-gray-900 dark:text-gray-100"
+                >
                   {{ event.summary }}
                 </p>
               </div>
@@ -185,7 +199,10 @@ const { t } = useI18n({ useScope: "local" });
           </article>
         </div>
         <div class="text-center mt-8" v-if="!events.length === 0">
-          <button @click="loadMore" class="bg-blue-500 text-white px-4 py-2 rounded-lg">
+          <button
+            @click="loadMore"
+            class="bg-blue-500 text-white px-4 py-2 rounded-lg"
+          >
             Load More
           </button>
         </div>
