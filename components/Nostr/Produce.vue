@@ -395,11 +395,18 @@
                   </div>
 
                   <div
+                    v-else-if="filteredEvents.length === 0"
+                    class="text-center"
+                  >
+                    <p>No products match your current filters.</p>
+                  </div>
+
+                  <div
                     v-else
                     class="grid grid-cols-1 gap-y-12 sm:grid-cols-2 sm:gap-x-6 lg:grid-cols-3 xl:gap-x-8"
                   >
                     <div
-                      v-for="event in events"
+                      v-for="event in filteredEvents"
                       :key="event.id"
                       class="relative"
                     >
@@ -495,7 +502,6 @@ import {
   SatoshiV2Icon,
   NoDollarsIcon,
 } from "@bitcoin-design/bitcoin-icons-vue/filled";
-import data from "~/config/products";
 
 const btcprice = await $fetch(
   "https://api.coinbase.com/v2/exchange-rates?currency=" +
@@ -503,7 +509,15 @@ const btcprice = await $fetch(
 );
 const btcprices = Number(btcprice.data.rates.BTC).toFixed(8);
 
-const products = ref(data);
+const normalizeCategory = (value) => {
+  if (value === "Food") return "Food & Drink";
+  return value;
+};
+
+const extractSizeFromTitle = (title) => {
+  const match = String(title || "").match(/\b(\d+\s?(?:oz|lb|g|kg|ml|l))\b/i);
+  return match ? match[1].toUpperCase() : "";
+};
 
 const bytesToHex = (bytes) => {
   return Array.from(bytes)
@@ -542,6 +556,19 @@ const fetchEvents = async (pageNumber) => {
         const stockTag = event.tags.find((tag) => tag[0] === "stock") || [
           0, 10,
         ];
+        const tTags = event.tags
+          .filter((tag) => tag[0] === "t" && tag[1])
+          .map((tag) => normalizeCategory(String(tag[1]).trim()));
+        const specValues = event.tags
+          .filter((tag) => tag[0] === "spec" && tag[1] && tag[2])
+          .map((tag) => `${tag[1]}: ${tag[2]}`);
+        const sizeFromTitle = extractSizeFromTitle(
+          titleTag ? titleTag[1] : "Untitled Event",
+        );
+        const variationValues = [
+          ...specValues,
+          ...(sizeFromTitle ? [sizeFromTitle] : []),
+        ];
 
         return {
           ...event,
@@ -551,6 +578,8 @@ const fetchEvents = async (pageNumber) => {
           price: priceTag ? priceTag[1] : "0",
           denomination: priceTag ? priceTag[2] : "0",
           stock: stockTag[1] ? Number(stockTag[1]) : 10,
+          category: [...new Set(tTags.length ? tTags : ["Uncategorized"])],
+          variations: [...new Set(variationValues)],
         };
       });
 
@@ -592,8 +621,10 @@ const selectedVariation = ref("");
 
 const filters = computed(() => {
   const variationSet = new Set();
-  products.value.forEach((product) => {
-    product.variations.forEach((variation) => variationSet.add(variation));
+  events.value.forEach((event) => {
+    (event.variations || []).forEach((variation) =>
+      variationSet.add(variation),
+    );
   });
 
   return Array.from(variationSet).map((variation) => ({
@@ -607,8 +638,8 @@ const filters = computed(() => {
 
 const categories = computed(() => {
   const categorySet = new Set();
-  products.value.forEach((product) => {
-    product.category.forEach((category) => categorySet.add(category));
+  events.value.forEach((event) => {
+    (event.category || []).forEach((category) => categorySet.add(category));
   });
 
   return Array.from(categorySet).map((category) => ({
@@ -625,6 +656,21 @@ const resetFilters = () => {
   selectedVariation.value = "";
   minimumStock.value = "";
 };
+
+const filteredEvents = computed(() => {
+  return events.value.filter((event) => {
+    const stockMatch =
+      Number(event.stock || 0) >= Number(minimumStock.value || 0);
+    const categoryMatch = selectedCategory.value
+      ? (event.category || []).includes(selectedCategory.value)
+      : true;
+    const variationMatch = selectedVariation.value
+      ? (event.variations || []).includes(selectedVariation.value)
+      : true;
+
+    return stockMatch && categoryMatch && variationMatch;
+  });
+});
 
 const mobileMenuOpen = ref(false);
 const mobileFiltersOpen = ref(false);
