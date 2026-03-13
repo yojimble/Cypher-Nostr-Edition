@@ -71,28 +71,19 @@
               <SatoshiV2Icon class="h-6 w-6 inline -mt-1" aria-hidden="true" />
             </p>
 
-
+            <p
+              v-if="filtersList == 'Fiat' && ticker.fiat.denomination != 'BTC'"
+              class="text-xl text-gray-900 dark:text-white"
+            >
+              {{ product.price }} {{ tickersymbol }}
+            </p>
 
             <p
-                            v-if="filtersList == 'Fiat' && ticker.fiat.denomination != 'BTC'"
-                            class="text-xl text-gray-900 dark:text-white"
-                          >
-                            {{ product.price }} {{ tickersymbol }}
-                          </p>
-
-                          <p
-                            v-if="filtersList == 'Fiat' && ticker.fiat.denomination == 'BTC'"
-                           class="text-xl text-gray-900 dark:text-white"
-                          >
-                          {{ (product.price * btcusdprices).toFixed(2) }} $
-                          </p>
-
-
-
-
-
-
-
+              v-if="filtersList == 'Fiat' && ticker.fiat.denomination == 'BTC'"
+              class="text-xl text-gray-900 dark:text-white"
+            >
+              {{ (product.price * btcusdprices).toFixed(2) }} $
+            </p>
           </div>
 
           <div class="w-full dark:text-white basis-full">
@@ -224,19 +215,9 @@ const tickersymbol = ticker.fiat.symbol;
 const cartStore = useProjectStore();
 const { addToCart } = cartStore;
 
-const btcprice = await $fetch(
-  "https://api.coinbase.com/v2/exchange-rates?currency=" +
-    ticker.fiat.denomination
-);
-
-const btcusdprice = await $fetch(
-  "https://api.coinbase.com/v2/exchange-rates?currency=BTC"
-);
-
-const btcprices = Number(btcprice.data.rates.BTC).toFixed(8);
-
-const btcusdprices = Number(btcusdprice.data.rates.USD).toFixed(2);
-
+const rates = await useBtcRates(ticker.fiat.denomination);
+const btcprices = rates.btcPerFiat;
+const btcusdprices = rates.usdPerBtc.toFixed(2);
 
 import {
   BitcoinIcon,

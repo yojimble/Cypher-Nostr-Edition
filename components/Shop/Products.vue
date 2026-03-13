@@ -23,12 +23,8 @@ const filtersStore = useFiltersStore();
 const { addValueToFilterList } = filtersStore;
 const { filtersList } = storeToRefs(filtersStore);
 
-const btcprice = await $fetch(
-  "https://api.coinbase.com/v2/exchange-rates?currency=" +
-    ticker.fiat.denomination
-);
-
-const btcprices = Number(btcprice.data.rates.BTC).toFixed(8);
+const rates = await useBtcRates(ticker.fiat.denomination);
+const btcprices = rates.btcPerFiat;
 
 import {
   BitcoinIcon,

@@ -503,11 +503,8 @@ import {
   NoDollarsIcon,
 } from "@bitcoin-design/bitcoin-icons-vue/filled";
 
-const btcprice = await $fetch(
-  "https://api.coinbase.com/v2/exchange-rates?currency=" +
-    setup.fiat.denomination,
-);
-const btcprices = Number(btcprice.data.rates.BTC).toFixed(8);
+const rates = await useBtcRates(setup.fiat.denomination);
+const btcprices = rates.btcPerFiat;
 
 const normalizeCategory = (value) => {
   if (value === "Food") return "Food & Drink";

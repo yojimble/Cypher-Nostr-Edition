@@ -1,9 +1,15 @@
 <template>
   <div>
     <div v-if="event !== null">
-      <div class="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
+      <div
+        class="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8"
+      >
         <div class="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-8">
-          <TabGroup as="div" class="flex flex-col-reverse" v-if="event.images && event.images.length">
+          <TabGroup
+            as="div"
+            class="flex flex-col-reverse"
+            v-if="event.images && event.images.length"
+          >
             <!-- Thumbnail images -->
             <div class="mx-auto mt-6 w-full max-w-2xl block lg:max-w-none">
               <TabList class="grid grid-cols-4 gap-6">
@@ -46,52 +52,46 @@
 
           <!-- Event info -->
           <div class="mt-10 px-4 sm:mt-16 sm:px-0 lg:mt-0">
-            <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+            <h1
+              class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white"
+            >
               {{ event.title }}
             </h1>
 
             <div class="mt-3">
               <h2 class="sr-only">Event information</h2>
 
+              <p
+                v-if="filtersList == 'Bitcoin'"
+                class="text-3xl text-gray-900 dark:text-white"
+              >
+                {{ (event.price * btcprices).toFixed(8) }}
+                <BitcoinIcon class="h-6 w-6 inline" aria-hidden="true" />
+              </p>
 
               <p
-                  v-if="filtersList == 'Bitcoin'"
-                  class="text-3xl text-gray-900 dark:text-white"
-                >
-                  {{ (event.price * btcprices).toFixed(8) }}
-                  <BitcoinIcon class="h-6 w-6 inline" aria-hidden="true" />
-                </p>
+                v-if="filtersList == 'Sats'"
+                class="text-3xl text-gray-900 dark:text-white"
+              >
+                {{ (event.price * btcprices * 100000000).toFixed(0) }}
+                <SatoshiV2Icon class="h-6 w-6 inline" aria-hidden="true" />
+              </p>
 
-                <p
-                  v-if="filtersList == 'Sats'"
-                  class="text-3xl text-gray-900 dark:text-white"
-                >
-                  {{ (event.price * btcprices * 100000000).toFixed(0) }}
-                  <SatoshiV2Icon class="h-6 w-6 inline" aria-hidden="true" />
-                </p>
-
-                <p
-                  v-if="filtersList == 'Fiat'"
-                  class="text-3xl text-gray-900 dark:text-white"
-                >
+              <p
+                v-if="filtersList == 'Fiat'"
+                class="text-3xl text-gray-900 dark:text-white"
+              >
                 {{ event.price }} {{ event.denomination }}
-                </p>
-
-
-
-
-
-
-
-
-
-
-
+              </p>
             </div>
 
             <div class="w-full dark:text-white basis-full">
-              <span class="flex items-center text-sm font-medium text-gray-900 dark:text-white">
-                <span class="flex w-2.5 h-2.5 bg-green-400 rounded-full mr-1.5 flex-shrink-0"></span>
+              <span
+                class="flex items-center text-sm font-medium text-gray-900 dark:text-white"
+              >
+                <span
+                  class="flex w-2.5 h-2.5 bg-green-400 rounded-full mr-1.5 flex-shrink-0"
+                ></span>
                 {{ t("Instock") }}
               </span>
             </div>
@@ -111,7 +111,11 @@
               </button>
             </div>
 
-            <section aria-labelledby="details-heading" class="mt-12" v-if="event.features">
+            <section
+              aria-labelledby="details-heading"
+              class="mt-12"
+              v-if="event.features"
+            >
               <h2 id="details-heading" class="sr-only">Additional details</h2>
               <div class="border-t divide-y divide-gray-200">
                 <div>
@@ -122,17 +126,38 @@
                       aria-controls="disclosure-1"
                       aria-expanded="false"
                     >
-                      <span class="text-gray-900 dark:text-white text-sm font-medium">Features</span>
+                      <span
+                        class="text-gray-900 dark:text-white text-sm font-medium"
+                        >Features</span
+                      >
                       <span class="ml-6 flex items-center">
-                        <svg class="block h-6 w-6 text-gray-400 group-hover:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        <svg
+                          class="block h-6 w-6 text-gray-400 group-hover:text-gray-500"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="2"
+                          stroke="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                          />
                         </svg>
                       </span>
                     </button>
                   </h3>
                   <div class="pb-6 prose prose-sm">
                     <ul role="list" class="dark:text-white">
-                      <li v-for="feature in event.features" :key="feature" class="dark:text-white">{{ feature }}</li>
+                      <li
+                        v-for="feature in event.features"
+                        :key="feature"
+                        class="dark:text-white"
+                      >
+                        {{ feature }}
+                      </li>
                     </ul>
                   </div>
                 </div>
@@ -153,50 +178,37 @@
 </template>
 
 <script setup>
-import {
-  TabGroup,
-  TabList,
-  TabPanels,
-  Tab,
-  TabPanel
-} from "@headlessui/vue";
-import { ref, onBeforeMount } from 'vue';
-import { useRoute } from 'vue-router';
-import { useI18n } from 'vue-i18n';
-import NDK from '@nostr-dev-kit/ndk';
+import { TabGroup, TabList, TabPanels, Tab, TabPanel } from "@headlessui/vue";
+import { ref, onBeforeMount } from "vue";
+import { useRoute } from "vue-router";
+import { useI18n } from "vue-i18n";
+import NDK from "@nostr-dev-kit/ndk";
 import setup from "~/config/setup";
 import { bech32 } from "bech32";
 import { useProjectStore } from "~/store/shopcart";
-import { useFiltersStore } from '~/store/currency';
+import { useFiltersStore } from "~/store/currency";
 import {
   BitcoinIcon,
-  SatoshiV2Icon
-} from '@bitcoin-design/bitcoin-icons-vue/filled';
-
+  SatoshiV2Icon,
+} from "@bitcoin-design/bitcoin-icons-vue/filled";
 
 const cartStore = useProjectStore();
 const { addToCart } = cartStore;
 
 import ticker from "~/config/setup";
 
-
-const btcprice = await $fetch(
-  "https://api.coinbase.com/v2/exchange-rates?currency=" +
-    ticker.fiat.denomination
-);
-
-const btcprices = Number(btcprice.data.rates.BTC).toFixed(8);
-
-console.log(btcprices)
+const rates = await useBtcRates(ticker.fiat.denomination);
+const btcprices = rates.btcPerFiat;
 
 const filtersStore = useFiltersStore();
 const { filtersList } = storeToRefs(filtersStore);
 
-
 const npubToHex = (npub) => {
   const decoded = bech32.decode(npub);
   const pubkeyBytes = bech32.fromWords(decoded.words);
-  return Array.from(pubkeyBytes).map(byte => byte.toString(16).padStart(2, '0')).join('');
+  return Array.from(pubkeyBytes)
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
 };
 
 const skHex = npubToHex(setup.nostradmin);
@@ -213,23 +225,28 @@ onBeforeMount(async () => {
   const filter = {
     kinds: [30402],
     authors: [skHex],
-    ids: [slugroute]
+    ids: [slugroute],
   };
-  
+
   const fetchedEvent = await ndk.fetchEvent(filter);
   event.value = fetchedEvent || null;
-  
+
   // Extract image URLs if available in tags
   if (event.value && event.value.tags) {
     event.value.images = event.value.tags
-      .filter(tag => tag[0] === 'image')
-      .map(tag => tag[1]);
+      .filter((tag) => tag[0] === "image")
+      .map((tag) => tag[1]);
 
     // Extract other event details
-    event.value.title = event.value.tags.find(tag => tag[0] === 'title')?.[1] || 'No Title';
-    event.value.summary = event.value.tags.find(tag => tag[0] === 'summary')?.[1] || event.value.content;
-    event.value.price = event.value.tags.find(tag => tag[0] === 'price')?.[1] || '0';
-    event.value.denomination = event.value.tags.find(tag => tag[0] === 'price')?.[2] || '0';
+    event.value.title =
+      event.value.tags.find((tag) => tag[0] === "title")?.[1] || "No Title";
+    event.value.summary =
+      event.value.tags.find((tag) => tag[0] === "summary")?.[1] ||
+      event.value.content;
+    event.value.price =
+      event.value.tags.find((tag) => tag[0] === "price")?.[1] || "0";
+    event.value.denomination =
+      event.value.tags.find((tag) => tag[0] === "price")?.[2] || "0";
   }
 });
 
@@ -248,56 +265,55 @@ function cartAddStore() {
 const { t } = useI18n({ useScope: "local" });
 </script>
 <i18n lang="json">
-  {
-    "da": {
-      "Addtocart": "Tilføj til kurv",
-      "Nostock": "Udsolgt",
-      "Lastitems": "Få på lager",
-      "Instock": "På lager",
-      "Warning": "Ups, det ser ud til, at du ikke har valgt en produktvariation"
-    },
-    "de": {
-      "Addtocart": "In den Warenkorb legen",
-      "Nostock": "Ausverkauft",
-      "Lastitems": "Letzte Stücke",
-      "Instock": "Auf Lager",
-      "Warning": "Hoppla, sieht so aus, als hättest du keine Produktvariante ausgewählt"
-    },
-    "en": {
-      "Addtocart": "Add to cart",
-      "Nostock": "Out of stock",
-      "Lastitems": "Last items",
-      "Instock": "In stock",
-      "Warning": "Woops looks like you didn't select a product variation"
-    },
-    "es": {
-      "Addtocart": "Añadir a la cesta",
-      "Nostock": "Agotado",
-      "Lastitems": "Últimas piezas",
-      "Instock": "En stock",
-      "Warning": "Ups, parece que no seleccionaste una variación del producto"
-    },
-    "fr": {
-      "Addtocart": "Ajouter au panier",
-      "Nostock": "Rupture de stock",
-      "Lastitems": "Dernières pièces",
-      "Instock": "Disponible",
-      "Warning": "Oups, on dirait que vous n'avez pas sélectionné une variation de produit"
-    },
-    "nl": {
-      "Addtocart": "Voeg toe aan winkelkar",
-      "Nostock": "Uitverkocht",
-      "Lastitems": "Laatste stuks",
-      "Instock": "In voorraad",
-      "Warning": "Oeps, het lijkt erop dat je geen productvariatie hebt geselecteerd"
-    },
-    "pt": {
-      "Addtocart": "Adicionar ao carrinho",
-      "Nostock": "Fora de estoque",
-      "Lastitems": "Últimos itens",
-      "Instock": "Em estoque",
-      "Warning": "Ops, parece que você não selecionou uma variação do produto"
-    }
+{
+  "da": {
+    "Addtocart": "Tilføj til kurv",
+    "Nostock": "Udsolgt",
+    "Lastitems": "Få på lager",
+    "Instock": "På lager",
+    "Warning": "Ups, det ser ud til, at du ikke har valgt en produktvariation"
+  },
+  "de": {
+    "Addtocart": "In den Warenkorb legen",
+    "Nostock": "Ausverkauft",
+    "Lastitems": "Letzte Stücke",
+    "Instock": "Auf Lager",
+    "Warning": "Hoppla, sieht so aus, als hättest du keine Produktvariante ausgewählt"
+  },
+  "en": {
+    "Addtocart": "Add to cart",
+    "Nostock": "Out of stock",
+    "Lastitems": "Last items",
+    "Instock": "In stock",
+    "Warning": "Woops looks like you didn't select a product variation"
+  },
+  "es": {
+    "Addtocart": "Añadir a la cesta",
+    "Nostock": "Agotado",
+    "Lastitems": "Últimas piezas",
+    "Instock": "En stock",
+    "Warning": "Ups, parece que no seleccionaste una variación del producto"
+  },
+  "fr": {
+    "Addtocart": "Ajouter au panier",
+    "Nostock": "Rupture de stock",
+    "Lastitems": "Dernières pièces",
+    "Instock": "Disponible",
+    "Warning": "Oups, on dirait que vous n'avez pas sélectionné une variation de produit"
+  },
+  "nl": {
+    "Addtocart": "Voeg toe aan winkelkar",
+    "Nostock": "Uitverkocht",
+    "Lastitems": "Laatste stuks",
+    "Instock": "In voorraad",
+    "Warning": "Oeps, het lijkt erop dat je geen productvariatie hebt geselecteerd"
+  },
+  "pt": {
+    "Addtocart": "Adicionar ao carrinho",
+    "Nostock": "Fora de estoque",
+    "Lastitems": "Últimos itens",
+    "Instock": "Em estoque",
+    "Warning": "Ops, parece que você não selecionou uma variação do produto"
   }
-  </i18n>
-  
+}
+</i18n>

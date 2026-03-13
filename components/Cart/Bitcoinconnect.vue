@@ -724,7 +724,7 @@
                         {{ t("current_btc_price") }}
                       </dt>
                       <dd class="text-gray-700 dark:text-white">
-                        {{ Number(btcprice.data.rates.USD).toFixed(2) }}
+                        {{ fiatToUsdRate.toFixed(2) }}
                         {{ ticker.fiat.symbol }}
                       </dd>
                     </div>
@@ -917,18 +917,10 @@ const missingInfo = ref(false);
 const filtersStore = useFiltersStore();
 const { filtersList } = storeToRefs(filtersStore);
 
-const btcusdprice = await $fetch(
-  "https://api.coinbase.com/v2/exchange-rates?currency=BTC",
-);
-
-const btcprice = await $fetch(
-  "https://api.coinbase.com/v2/exchange-rates?currency=" +
-    ticker.fiat.denomination,
-);
-
-const btcusdprices = Number(btcusdprice.data.rates.USD).toFixed(2);
-
-const btcprices = Number(btcprice.data.rates.BTC);
+const rates = await useBtcRates(ticker.fiat.denomination);
+const btcusdprices = rates.usdPerBtc.toFixed(2);
+const btcprices = rates.btcPerFiat;
+const fiatToUsdRate = rates.fiatToUsd;
 
 const store = useProjectStore();
 const getCartTotal = () => Number(store.getTotalPrice?.() ?? 0) || 0;

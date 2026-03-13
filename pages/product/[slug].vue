@@ -88,24 +88,22 @@
               </p>
 
               <p
-                v-if="filtersList == 'Fiat' && ticker.fiat.denomination != 'BTC'"
+                v-if="
+                  filtersList == 'Fiat' && ticker.fiat.denomination != 'BTC'
+                "
                 class="text-3xl text-gray-900 dark:text-white"
               >
                 {{ product[0].price }} {{ tickersymbol }}
               </p>
 
-
-
               <p
-                v-if="filtersList == 'Fiat' && ticker.fiat.denomination == 'BTC'"
+                v-if="
+                  filtersList == 'Fiat' && ticker.fiat.denomination == 'BTC'
+                "
                 class="text-3xl text-gray-900 dark:text-white"
               >
-                {{  (product[0].price * btcusdprices).toFixed(2) }} $
+                {{ (product[0].price * btcusdprices).toFixed(2) }} $
               </p>
-
-
-
-
             </div>
 
             <div class="w-full dark:text-white basis-full">
@@ -287,9 +285,9 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useRoute } from 'vue-router';
-import { useI18n } from 'vue-i18n';
+import { ref } from "vue";
+import { useRoute } from "vue-router";
+import { useI18n } from "vue-i18n";
 
 import {
   RadioGroup,
@@ -301,9 +299,7 @@ import {
   TabPanel,
   TabPanels,
 } from "@headlessui/vue";
-import {
-  ExclamationTriangleIcon,
-} from "@heroicons/vue/24/outline";
+import { ExclamationTriangleIcon } from "@heroicons/vue/24/outline";
 
 import { useFiltersStore } from "~/store/currency";
 import { storeToRefs } from "pinia";
@@ -340,19 +336,9 @@ function cartAddStore() {
   }
 }
 
-const btcprice = await $fetch(
-  "https://api.coinbase.com/v2/exchange-rates?currency=" +
-    ticker.fiat.denomination
-);
-
-const btcusdprice = await $fetch(
-  "https://api.coinbase.com/v2/exchange-rates?currency=BTC"
-);
-
-const btcprices = Number(btcprice.data.rates.BTC).toFixed(8);
-
-const btcusdprices = Number(btcusdprice.data.rates.USD).toFixed(2);
-
+const rates = await useBtcRates(ticker.fiat.denomination);
+const btcprices = rates.btcPerFiat;
+const btcusdprices = rates.usdPerBtc.toFixed(2);
 
 import {
   BitcoinIcon,

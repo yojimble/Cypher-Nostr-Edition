@@ -393,7 +393,7 @@
               <template
                 v-if="
                   filteredProducts.some((product) =>
-                    product.category.includes(category.name)
+                    product.category.includes(category.name),
                   )
                 "
               >
@@ -411,7 +411,7 @@
                 >
                   <div
                     v-for="product in filteredProducts.filter((p) =>
-                      p.category.includes(category.name)
+                      p.category.includes(category.name),
                     )"
                     :key="product.id"
                     class="mt-6"
@@ -479,22 +479,24 @@
                             />
                           </p>
                           <p
-                            v-if="filtersList == 'Fiat' && ticker.fiat.denomination != 'BTC'"
+                            v-if="
+                              filtersList == 'Fiat' &&
+                              ticker.fiat.denomination != 'BTC'
+                            "
                             class="float-left dark:text-white font-semibold text-black"
                           >
                             {{ product.price }} {{ tickersymbol }}
                           </p>
 
                           <p
-                            v-if="filtersList == 'Fiat' && ticker.fiat.denomination == 'BTC'"
+                            v-if="
+                              filtersList == 'Fiat' &&
+                              ticker.fiat.denomination == 'BTC'
+                            "
                             class="float-left dark:text-white font-semibold text-black"
                           >
-                          {{ (product.price * btcusdprices).toFixed(2) }} $
+                            {{ (product.price * btcusdprices).toFixed(2) }} $
                           </p>
-
-
-
-
                         </div>
                         <div class="w-full dark:text-white basis-full">
                           <span
@@ -563,19 +565,9 @@ const filtersStore = useFiltersStore();
 const { addValueToFilterList } = filtersStore;
 const { filtersList } = storeToRefs(filtersStore);
 
-const btcprice = await $fetch(
-  "https://api.coinbase.com/v2/exchange-rates?currency=" +
-    ticker.fiat.denomination
-);
-
-const btcusdprice = await $fetch(
-  "https://api.coinbase.com/v2/exchange-rates?currency=BTC"
-);
-
-const btcprices = Number(btcprice.data.rates.BTC).toFixed(8);
-
-const btcusdprices = Number(btcusdprice.data.rates.USD).toFixed(2);
-
+const rates = await useBtcRates(ticker.fiat.denomination);
+const btcprices = rates.btcPerFiat;
+const btcusdprices = rates.usdPerBtc.toFixed(2);
 
 import {
   BitcoinIcon,
