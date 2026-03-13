@@ -93,7 +93,7 @@
                       @click="
                         removeFromCart(
                           (id = product.id),
-                          (variation = product.variation)
+                          (variation = product.variation),
                         )
                       "
                       class="ml-4 text-sm font-medium text-indigo-600 hover:text-indigo-500 sm:ml-0 sm:mt-3"
@@ -504,33 +504,6 @@
                   {{ t("confirmation_note") }}
                 </p>
 
-                <div
-                  class="border-l-4 border-yellow-400 bg-yellow-50 p-4 mt-6"
-                  v-if="comply == true"
-                >
-                  <div class="flex">
-                    <div class="flex-shrink-0">
-                      <svg
-                        class="h-5 w-5 text-yellow-400"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        aria-hidden="true"
-                      >
-                        <path
-                          fill-rule="evenodd"
-                          d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z"
-                          clip-rule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                    <div class="ml-3">
-                      <p class="text-sm text-yellow-700">
-                        {{ t("agreement_instruction") }}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
                 <!-- <dl class="mt-12 text-sm font-medium">
         <dt class="text-gray-900">Tracking number</dt>
         <dd class="mt-2 text-indigo-600">51547878755545848512</dd>
@@ -729,8 +702,10 @@
                       </dd>
                     </div>
 
-
-                    <div v-if="isLocalVisible == false" class="flex justify-between">
+                    <div
+                      v-if="isLocalVisible == false"
+                      class="flex justify-between"
+                    >
                       <dt class="font-medium text-gray-900 dark:text-white">
                         Shipping Cost
                       </dt>
@@ -743,12 +718,17 @@
                       </dd>
                     </div>
 
-                    <div v-if="isLocalVisible == false" class="flex justify-between">
+                    <div
+                      v-if="isLocalVisible == false"
+                      class="flex justify-between"
+                    >
                       <dt class="font-medium text-gray-900 dark:text-white">
                         Total Order BTC
                       </dt>
                       <dd class="text-gray-900 dark:text-white">
-                        {{ ((totalPrice + totalShipPrice) * btcprices).toFixed(8)  }} 
+                        {{
+                          ((totalPrice + totalShipPrice) * btcprices).toFixed(8)
+                        }}
                         <BitcoinIcon
                           class="h-6 w-6 inline -mt-1"
                           aria-hidden="true"
@@ -765,26 +745,6 @@
                       </dd>
                     </div>
                   </dl>
-
-                  <div class="mt-6">
-                    <input
-                      type="checkbox"
-                      v-model="ordercheck"
-                      class="inline-block"
-                    />
-                    <p class="inline-block text-black dark:text-white">
-                      {{ t("confirmation_agreement") }}
-                      <NuxtLink
-                        :to="localePath('/shipping')"
-                        class="underline"
-                        >{{ t("shipping") }}</NuxtLink
-                      >
-                      &
-                      <NuxtLink :to="localePath('/tos')" class="underline"
-                        >{{ t("TOS") }}
-                      </NuxtLink>
-                    </p>
-                  </div>
                 </div>
               </section>
             </div>
@@ -796,6 +756,20 @@
               >
                 {{ t("ContinuePay") }}
               </button>
+
+              <p
+                v-if="orderDispatchMessage"
+                class="mt-3 text-sm"
+                :class="
+                  orderDispatchState === 'error'
+                    ? 'text-red-600 dark:text-red-400'
+                    : orderDispatchState === 'success'
+                      ? 'text-green-700 dark:text-green-400'
+                      : 'text-gray-600 dark:text-gray-300'
+                "
+              >
+                {{ orderDispatchMessage }}
+              </p>
             </div>
           </div>
 
@@ -875,6 +849,10 @@ import { CheckIcon, ClockIcon } from "@heroicons/vue/20/solid";
 import { useProjectStore } from "~/store/shopcart";
 import { storeToRefs } from "pinia";
 import data from "~/config/setup";
+import {
+  buildOrderMessage,
+  dispatchOrderNotification,
+} from "~/utils/orderDispatch";
 
 import ticker from "~/config/setup";
 
@@ -920,8 +898,6 @@ const country = ref("");
 
 const missingInfo = ref(false);
 
-const ordercheck = ref(false);
-const comply = ref(false);
 // END SHIPPING SECTION
 
 const filtersStore = useFiltersStore();
@@ -929,37 +905,42 @@ const { filtersList } = storeToRefs(filtersStore);
 
 const btcprice = await $fetch(
   "https://api.coinbase.com/v2/exchange-rates?currency=" +
-    ticker.fiat.denomination
+    ticker.fiat.denomination,
 );
 
-const btcprices = Number(btcprice.data.rates.BTC).toFixed(8);
+const btcprices = Number(btcprice.data.rates.BTC);
 
 const store = useProjectStore();
-const totalPrice = ref(store.getTotalPrice());
-const totalShipPrice = ref(store.getTotalShippingCost());
+const getCartTotal = () => Number(store.getTotalPrice?.() ?? 0) || 0;
+const getCartShippingTotal = () =>
+  Number(store.getTotalShippingCost?.() ?? 0) || 0;
+const calculateTotalPriceBtc = (includeShipping) => {
+  const fiatTotal = includeShipping
+    ? getCartTotal() + getCartShippingTotal()
+    : getCartTotal();
+  return (fiatTotal * btcprices).toFixed(8);
+};
 
+const totalPrice = ref(getCartTotal());
+const totalShipPrice = ref(getCartShippingTotal());
+const orderDispatchState = ref("");
+const orderDispatchMessage = ref("");
 
 // const totalPriceSats = (totalPrice * btcprices * 100000000).toFixed(0);
 const totalPriceBtc = ref(0);
-
-
 
 function hasEmptyItem(array) {
   return array.some((item) => !item);
 }
 
-
 function orderView() {
   if (isLocalVisible.value == true || data.checkout == "local") {
     if (localidentity.value !== "") {
       launchStep.value = "view";
-      if (isShippingVisible.value == true){
-        totalPriceBtc.value = ((store.getTotalPrice() + store.getTotalShippingCost()) * btcprices).toFixed(8);
-
-      }
-      else{
-        totalPriceBtc.value = (store.getTotalPrice() * btcprices).toFixed(8);
-
+      if (isShippingVisible.value == true) {
+        totalPriceBtc.value = calculateTotalPriceBtc(true);
+      } else {
+        totalPriceBtc.value = calculateTotalPriceBtc(false);
       }
 
       window.scrollTo(0, 0);
@@ -981,61 +962,71 @@ function orderView() {
     } else {
       //Continue with
       launchStep.value = "view";
-      if (isShippingVisible.value == true){
-        totalPriceBtc.value = ((store.getTotalPrice() + store.getTotalShippingCost()) * btcprices).toFixed(8);
-
-      }
-      else{
-        totalPriceBtc.value = (store.getTotalPrice() * btcprices).toFixed(8);
-
+      if (isShippingVisible.value == true) {
+        totalPriceBtc.value = calculateTotalPriceBtc(true);
+      } else {
+        totalPriceBtc.value = calculateTotalPriceBtc(false);
       }
       window.scrollTo(0, 0);
     }
   }
 }
 
-function paymentstart() {
-  if (ordercheck.value == false) {
-    comply.value = true;
-    window.scrollTo(0, 0);
+async function paymentstart() {
+  launchStep.value = "payment";
+  const includeShipping = isShippingVisible.value == true;
+  if (isShippingVisible.value == true) {
+    totalPriceBtc.value = calculateTotalPriceBtc(true);
   } else {
-    launchStep.value = "payment";
-    if (isShippingVisible.value == true){
-        totalPriceBtc.value = ((store.getTotalPrice() + store.getTotalShippingCost()) * btcprices).toFixed(8);
-
-      }
-      else{
-        totalPriceBtc.value = (store.getTotalPrice() * btcprices).toFixed(8);
-
-      }
-    // SENDING OFF THE DATA
-
-    fetch(data.orderwebhook, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username: "The Order Bot",
-        avatar_url: "https://i.imgur.com/oBPXx0D.png",
-        content: JSON.stringify(formData.value),
-      }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log("Success:", data); //Handle success response
-      })
-      .catch((error) => {
-        console.error("Error:", error); // Handle errors
-      });
-
-    window.scrollTo(0, 0);
+    totalPriceBtc.value = calculateTotalPriceBtc(false);
   }
+
+  const orderMessage = buildOrderMessage({
+    orderId: randomid.value,
+    checkoutMode: includeShipping ? "shipping" : "local",
+    customer: {
+      name: `${firstname.value} ${lastname.value}`.trim(),
+      email: email.value,
+      address: address.value,
+      apartment: apartment.value,
+      city: city.value,
+      postalcode: postalcode.value,
+      region: region.value,
+      country: country.value,
+      localidentity: localidentity.value,
+    },
+    items: store.cartItems,
+    totals: {
+      subtotalFiat: Number(totalPrice.value || 0),
+      shippingFiat: includeShipping ? Number(totalShipPrice.value || 0) : 0,
+      totalFiat: includeShipping
+        ? Number(totalPrice.value || 0) + Number(totalShipPrice.value || 0)
+        : Number(totalPrice.value || 0),
+      totalBtc: Number(totalPriceBtc.value || 0),
+      fiatCurrency: ticker.fiat.denomination,
+      fiatSymbol: ticker.fiat.symbol,
+    },
+    timestamp: Date.now(),
+  });
+
+  try {
+    orderDispatchState.value = "pending";
+    orderDispatchMessage.value = "Sending order details to seller...";
+    const delivery = await dispatchOrderNotification(orderMessage, data);
+    orderDispatchState.value = "success";
+    orderDispatchMessage.value = delivery.dmSent
+      ? "Order sent to seller via Nostr DM."
+      : "Order sent to seller via fallback webhook.";
+    console.log(
+      `Order dispatched: DM=${delivery.dmSent} webhook=${delivery.webhookSent} orderId=${randomid.value}`,
+    );
+  } catch (error) {
+    orderDispatchState.value = "error";
+    orderDispatchMessage.value = "Unable to confirm order delivery to seller.";
+    console.error("Order dispatch failed", error);
+  }
+
+  window.scrollTo(0, 0);
 }
 
 const randomId = function (length = 6) {
@@ -1048,12 +1039,12 @@ const randomId = function (length = 6) {
 watch(
   () => store.cartItems,
   () => {
-    totalPrice.value = store.getTotalPrice();
-    totalShipPrice.value = store.getTotalShippingCost();
+    totalPrice.value = getCartTotal();
+    totalShipPrice.value = getCartShippingTotal();
 
     // totalPriceBtc.value = (store.getTotalPrice() * btcprices).toFixed(8)
   },
-  { deep: true }
+  { deep: true },
 );
 
 // watch(() => store.cartItems, () => {
@@ -1065,8 +1056,8 @@ watch(
 // });
 
 onMounted(() => {
-  totalPrice.value = store.getTotalPrice();
-  totalShipPrice.value = store.getTotalShippingCost();
+  totalPrice.value = getCartTotal();
+  totalShipPrice.value = getCartShippingTotal();
   // totalPriceBtc.value = (store.getTotalPrice() * btcprices).toFixed(8)
   randomid.value = randomId(10);
   // console.log(randomId(10));
