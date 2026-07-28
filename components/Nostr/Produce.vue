@@ -664,7 +664,10 @@ const resetFilters = () => {
 
 const filteredEvents = computed(() => {
   return events.value.filter((event) => {
+    const outOfStockHidden =
+      setup.hideOutOfStock && Number(event.stock || 0) <= 0;
     const stockMatch =
+      !outOfStockHidden &&
       Number(event.stock || 0) >= Number(minimumStock.value || 0);
     const categoryMatch = selectedCategory.value
       ? (event.category || []).includes(selectedCategory.value)
