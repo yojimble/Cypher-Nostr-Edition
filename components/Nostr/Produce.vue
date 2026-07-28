@@ -490,7 +490,6 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import NDK from "@nostr-dev-kit/ndk";
 import setup from "~/config/setup";
 import { bech32 } from "bech32";
 import { useI18n } from "vue-i18n";
@@ -534,14 +533,23 @@ const isLoading = ref(true);
 const page = ref(0);
 const pageSize = 12;
 
+const withTimeout = (promise, timeoutMs) =>
+  Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("timeout")), timeoutMs),
+    ),
+  ]);
+
 const fetchEvents = async (pageNumber) => {
   isLoading.value = true;
   try {
+    const { default: NDK } = await import("@nostr-dev-kit/ndk");
     const ndk = new NDK({ explicitRelayUrls: setup.relays });
-    await ndk.connect();
+    await withTimeout(ndk.connect(), 8000);
 
     const filter = { kinds: [30402], authors: [skHex] };
-    const fetchedEvents = await ndk.fetchEvents(filter);
+    const fetchedEvents = await withTimeout(ndk.fetchEvents(filter), 10000);
 
     const newEvents = Array.from(fetchedEvents)
       .slice(pageNumber * pageSize, (pageNumber + 1) * pageSize)

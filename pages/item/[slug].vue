@@ -182,7 +182,6 @@ import { TabGroup, TabList, TabPanels, Tab, TabPanel } from "@headlessui/vue";
 import { ref, onBeforeMount } from "vue";
 import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
-import NDK from "@nostr-dev-kit/ndk";
 import setup from "~/config/setup";
 import { bech32 } from "bech32";
 import { useProjectStore } from "~/store/shopcart";
@@ -217,36 +216,50 @@ const route = useRoute();
 const slugroute = route.params.slug;
 const event = ref(null);
 
+const withTimeout = (promise, timeoutMs) =>
+  Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("timeout")), timeoutMs),
+    ),
+  ]);
+
 onBeforeMount(async () => {
-  const ndk = new NDK({ explicitRelayUrls: setup.relays });
-  await ndk.connect(); // Connect to the relay
+  try {
+    const { default: NDK } = await import("@nostr-dev-kit/ndk");
+    const ndk = new NDK({ explicitRelayUrls: setup.relays });
+    await withTimeout(ndk.connect(), 8000); // Connect to the relay
 
-  // Define the filter to fetch the event by its ID
-  const filter = {
-    kinds: [30402],
-    authors: [skHex],
-    ids: [slugroute],
-  };
+    // Define the filter to fetch the event by its ID
+    const filter = {
+      kinds: [30402],
+      authors: [skHex],
+      ids: [slugroute],
+    };
 
-  const fetchedEvent = await ndk.fetchEvent(filter);
-  event.value = fetchedEvent || null;
+    const fetchedEvent = await withTimeout(ndk.fetchEvent(filter), 10000);
+    event.value = fetchedEvent || null;
 
-  // Extract image URLs if available in tags
-  if (event.value && event.value.tags) {
-    event.value.images = event.value.tags
-      .filter((tag) => tag[0] === "image")
-      .map((tag) => tag[1]);
+    // Extract image URLs if available in tags
+    if (event.value && event.value.tags) {
+      event.value.images = event.value.tags
+        .filter((tag) => tag[0] === "image")
+        .map((tag) => tag[1]);
 
-    // Extract other event details
-    event.value.title =
-      event.value.tags.find((tag) => tag[0] === "title")?.[1] || "No Title";
-    event.value.summary =
-      event.value.tags.find((tag) => tag[0] === "summary")?.[1] ||
-      event.value.content;
-    event.value.price =
-      event.value.tags.find((tag) => tag[0] === "price")?.[1] || "0";
-    event.value.denomination =
-      event.value.tags.find((tag) => tag[0] === "price")?.[2] || "0";
+      // Extract other event details
+      event.value.title =
+        event.value.tags.find((tag) => tag[0] === "title")?.[1] || "No Title";
+      event.value.summary =
+        event.value.tags.find((tag) => tag[0] === "summary")?.[1] ||
+        event.value.content;
+      event.value.price =
+        event.value.tags.find((tag) => tag[0] === "price")?.[1] || "0";
+      event.value.denomination =
+        event.value.tags.find((tag) => tag[0] === "price")?.[2] || "0";
+    }
+  } catch (error) {
+    console.error("Item page: failed to load Nostr event", error);
+    event.value = null;
   }
 });
 
