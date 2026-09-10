@@ -37,7 +37,7 @@
         <div
           v-for="(event, index) in displayedEvents"
           :key="index"
-          class="w-full p-4 bg-white rounded-lg shadow-2xl dark:bg-black dark:shadow-lg dark:shadow-gray-700"
+          class="w-full min-w-0 overflow-hidden break-words p-4 bg-white rounded-lg shadow-2xl dark:bg-black dark:shadow-lg dark:shadow-gray-700"
         >
           <p>
             <CalendarDaysIcon
@@ -45,7 +45,28 @@
             />
             {{ new Date(event.created_at * 1000).toLocaleString() }}
           </p>
-          <p><strong></strong> {{ cleanedContent(event.content) }}</p>
+          <div class="break-words">
+            <template
+              v-for="(segment, i) in parseNostrContent(
+                cleanedContent(event.content),
+              )"
+              :key="i"
+            >
+              <NostrQuote
+                v-if="segment.kind === 'event'"
+                :id="segment.id"
+                :relays="segment.relays"
+              />
+              <NostrMention
+                v-else-if="segment.kind === 'profile'"
+                :pubkey="segment.pubkey"
+                :relays="segment.relays"
+              />
+              <span v-else class="whitespace-pre-wrap">{{
+                segment.value ?? segment.raw
+              }}</span>
+            </template>
+          </div>
           <p v-if="extractMediaUrl(event.content)">
             <img
               v-if="isImage(extractMediaUrl(event.content))"
@@ -64,7 +85,7 @@
             <a
               :href="extractUrl(event.content)"
               target="_blank"
-              class="text-blue-500 underline"
+              class="text-blue-500 underline break-all"
               >{{ extractUrl(event.content) }}</a
             >
           </p>
@@ -198,7 +219,7 @@ onMounted(async () => {
   isLoading.value = true;
   try {
     const ndk = new NDK({ explicitRelayUrls: setup.relays });
-    await withTimeout(ndk.connect(), 8000, "Relay connection");
+    await withTimeout(ndk.connect(2000), 8000, "Relay connection");
 
     const filter = { kinds: [1], authors: [skHex] };
     const fetchedEvents = await withTimeout(

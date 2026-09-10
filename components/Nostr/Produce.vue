@@ -546,7 +546,7 @@ const fetchEvents = async (pageNumber) => {
   try {
     const { default: NDK } = await import("@nostr-dev-kit/ndk");
     const ndk = new NDK({ explicitRelayUrls: setup.relays });
-    await withTimeout(ndk.connect(), 8000);
+    await withTimeout(ndk.connect(2000), 8000);
 
     const filter = { kinds: [30402], authors: [skHex] };
     const fetchedEvents = await withTimeout(ndk.fetchEvents(filter), 10000);

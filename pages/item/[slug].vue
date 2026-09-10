@@ -228,7 +228,7 @@ onBeforeMount(async () => {
   try {
     const { default: NDK } = await import("@nostr-dev-kit/ndk");
     const ndk = new NDK({ explicitRelayUrls: setup.relays });
-    await withTimeout(ndk.connect(), 8000); // Connect to the relay
+    await withTimeout(ndk.connect(2000), 8000); // Connect to the relay
 
     // Define the filter to fetch the event by its ID
     const filter = {
