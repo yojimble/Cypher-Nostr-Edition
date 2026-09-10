@@ -202,7 +202,7 @@ const next = () => {
 onMounted(async () => {
   const ndk = new NDK({ explicitRelayUrls: setup.relays });
 
-  await ndk.connect();
+  await ndk.connect(2000);
 
   const filter = { kinds: [1], authors: [skHex] };
 

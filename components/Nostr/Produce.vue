@@ -333,7 +333,7 @@ const pageSize = 12;
 
 const fetchEvents = async (pageNumber) => {
   const ndk = new NDK({ explicitRelayUrls: setup.relays });
-  await ndk.connect();
+  await ndk.connect(2000);
 
   const filter = { kinds: [30402], authors: [skHex] };
   const fetchedEvents = await ndk.fetchEvents(filter);

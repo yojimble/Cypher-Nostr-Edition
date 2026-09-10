@@ -35,7 +35,7 @@ const parsedMarkdown = ref(null);
 
 onBeforeMount(async () => {
   const ndk = new NDK({ explicitRelayUrls: setup.relays });
-  await ndk.connect(); // Connect to the relay
+  await ndk.connect(2000); // Connect to the relay
   
   // Define the filter
   const filter = {
