@@ -18,3 +18,16 @@
     font-weight: 900;
     src: url('/fonts/JetBrainsMono-ExtraBold.woff2') format('woff2');
   }
+
+/*
+ * @tailwindcss/forms rings radios and checkboxes on :focus, and the input keeps
+ * focus after a click — so a deselected filter box was left circled in blue.
+ * Drop the ring for pointer focus, keep it for keyboard users.
+ */
+[type="radio"]:focus:not(:focus-visible),
+[type="checkbox"]:focus:not(:focus-visible) {
+  box-shadow: none;
+  outline: none;
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-ring-offset-shadow: 0 0 #0000;
+}

@@ -176,7 +176,7 @@
                         >
                           <span
                             class="text-sm font-medium text-gray-900 dark:text-white"
-                            >Variations</span
+                            >Attributes</span
                           >
                           <span class="ml-6 flex h-7 items-center">
                             <ChevronDownIcon
@@ -351,7 +351,7 @@
                   <legend
                     class="block text-sm font-medium text-gray-900 dark:text-white mt-12"
                   >
-                    Variations
+                    Attributes
                   </legend>
 
                   <div

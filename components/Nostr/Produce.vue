@@ -79,7 +79,8 @@
                               name="inventory"
                               value=""
                               type="radio"
-                              v-model="minimumStock"
+                              :checked="minimumStock === ''"
+                              @click="toggleStock('')"
                               class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
                             />
                             <label
@@ -94,13 +95,30 @@
                               name="inventory"
                               value="1"
                               type="radio"
-                              v-model="minimumStock"
+                              :checked="minimumStock === '1'"
+                              @click="toggleStock('1')"
                               class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
                             />
                             <label
                               for="color-1-mobile"
                               class="ml-3 text-sm text-gray-600 dark:text-white"
                               >{{ t("Instock") }}</label
+                            >
+                          </div>
+                          <div class="flex items-center">
+                            <input
+                              id="color-2-mobile"
+                              name="inventory"
+                              value="last"
+                              type="radio"
+                              :checked="minimumStock === 'last'"
+                              @click="toggleStock('last')"
+                              class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                            <label
+                              for="color-2-mobile"
+                              class="ml-3 text-sm text-gray-600 dark:text-white"
+                              >{{ t("Lastremaining") }}</label
                             >
                           </div>
                         </div>
@@ -149,9 +167,9 @@
                                 :id="`${section.id}-${optionIdx}-mobile`"
                                 name="category"
                                 :value="option.label"
-                                v-model="selectedCategory"
-                                type="radio"
-                                class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                v-model="selectedCategories"
+                                type="checkbox"
+                                class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                               />
                               <label
                                 :for="`${section.id}-${optionIdx}-mobile`"
@@ -165,8 +183,16 @@
                     </template>
                   </Disclosure>
 
-                  <!-- Variations Filter -->
+                  <!-- Attributes Filters (one group per configured spec) -->
+                  <p
+                    v-if="specFilters.length"
+                    class="border-t border-gray-200 px-2 pt-4 text-sm font-medium text-gray-900 dark:text-white"
+                  >
+                    {{ t("Attributes") }}
+                  </p>
                   <Disclosure
+                    v-for="group in specFilters"
+                    :key="group.name"
                     as="div"
                     class="border-t border-gray-200 pb-4 pt-4"
                   >
@@ -178,7 +204,7 @@
                           >
                             <span
                               class="text-sm font-medium text-gray-900 dark:text-white"
-                              >Variations</span
+                              >{{ group.name }}</span
                             >
                             <span class="ml-6 flex h-7 items-center">
                               <ChevronDownIcon
@@ -193,29 +219,26 @@
                         </legend>
                         <DisclosurePanel class="px-4 pb-2">
                           <div
-                            v-for="section in filters"
-                            :key="section.name"
-                            class="space-y-6"
+                            v-for="(option, optionIdx) in group.options"
+                            :key="option.value"
+                            class="flex items-center mt-2.5"
                           >
-                            <div
-                              v-for="(option, optionIdx) in section.options"
-                              :key="option.value"
-                              class="flex items-center mt-2.5"
+                            <input
+                              :id="`${group.id}-${optionIdx}-mobile`"
+                              :name="`spec-${group.id}-mobile`"
+                              :value="option.label"
+                              :checked="
+                                selectedSpecs[group.name] === option.label
+                              "
+                              @click="toggleSpec(group.name, option.label)"
+                              type="radio"
+                              class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                            <label
+                              :for="`${group.id}-${optionIdx}-mobile`"
+                              class="ml-3 text-sm text-gray-500 dark:text-white"
+                              >{{ option.label }}</label
                             >
-                              <input
-                                :id="`${section.id}-${optionIdx}-mobile`"
-                                name="variation"
-                                :value="option.label"
-                                v-model="selectedVariation"
-                                type="radio"
-                                class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                              />
-                              <label
-                                :for="`${section.id}-${optionIdx}-mobile`"
-                                class="ml-3 text-sm text-gray-500 dark:text-white"
-                                >{{ option.label }}</label
-                              >
-                            </div>
                           </div>
                         </DisclosurePanel>
                       </fieldset>
@@ -281,7 +304,8 @@
                         name="inventory"
                         value=""
                         type="radio"
-                        v-model="minimumStock"
+                        :checked="minimumStock === ''"
+                        @click="toggleStock('')"
                         class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
                         checked
                       />
@@ -297,13 +321,30 @@
                         name="inventory"
                         value="1"
                         type="radio"
-                        v-model="minimumStock"
+                        :checked="minimumStock === '1'"
+                        @click="toggleStock('1')"
                         class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
                       />
                       <label
                         for="color-1"
                         class="ml-3 text-sm text-gray-600 dark:text-white"
                         >{{ t("Instock") }}</label
+                      >
+                    </div>
+                    <div class="flex items-center">
+                      <input
+                        id="color-2"
+                        name="inventory"
+                        value="last"
+                        type="radio"
+                        :checked="minimumStock === 'last'"
+                        @click="toggleStock('last')"
+                        class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <label
+                        for="color-2"
+                        class="ml-3 text-sm text-gray-600 dark:text-white"
+                        >{{ t("Lastremaining") }}</label
                       >
                     </div>
                   </div>
@@ -329,9 +370,9 @@
                         :id="`${section.id}-${optionIdx}`"
                         name="category"
                         :value="option.label"
-                        type="radio"
-                        v-model="selectedCategory"
-                        class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        type="checkbox"
+                        v-model="selectedCategories"
+                        class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                       />
                       <label
                         :for="`${section.id}-${optionIdx}`"
@@ -342,32 +383,39 @@
                   </div>
                 </div>
 
-                <!-- Variations Filter -->
-                <div>
-                  <legend
+                <!-- Attributes Filters (one group per configured spec) -->
+                <div v-if="specFilters.length">
+                  <p
                     class="block text-sm font-medium text-gray-900 dark:text-white mt-12"
                   >
-                    {{ t("Variations") }}
-                  </legend>
+                    {{ t("Attributes") }}
+                  </p>
                   <div
-                    v-for="(section, sectionIdx) in filters"
-                    :key="section.name"
+                    v-for="group in specFilters"
+                    :key="group.name"
+                    class="mt-6"
                   >
+                    <p
+                      class="block text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-white"
+                    >
+                      {{ group.name }}
+                    </p>
                     <div
-                      v-for="(option, optionIdx) in section.options"
+                      v-for="(option, optionIdx) in group.options"
                       :key="option.value"
                       class="flex items-center mt-2.5"
                     >
                       <input
-                        :id="`${section.id}-${optionIdx}`"
-                        name="variation"
+                        :id="`${group.id}-${optionIdx}`"
+                        :name="`spec-${group.id}`"
                         :value="option.label"
                         type="radio"
-                        v-model="selectedVariation"
+                        :checked="selectedSpecs[group.name] === option.label"
+                        @click="toggleSpec(group.name, option.label)"
                         class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
                       />
                       <label
-                        :for="`${section.id}-${optionIdx}`"
+                        :for="`${group.id}-${optionIdx}`"
                         class="ml-3 text-sm text-gray-600 dark:text-white"
                         >{{ option.label }}</label
                       >
@@ -506,8 +554,14 @@ const rates = await useBtcRates(setup.fiat.denomination);
 const btcprices = rates.btcPerFiat;
 
 const normalizeCategory = (value) => {
-  if (value === "Food") return "Food & Drink";
-  return value;
+  // tags are published lowercase, so title-case them for display
+  const titled = String(value)
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+  if (titled === "Food") return "Food & Drink";
+  return titled;
 };
 
 const extractSizeFromTitle = (title) => {
@@ -528,8 +582,8 @@ const npubToHex = (npub) => {
 };
 
 const skHex = npubToHex(setup.nostradmin);
-const events = ref([]);
-const isLoading = ref(true);
+const { listings: events, hasLoaded } = useShopListings();
+const isLoading = ref(!hasLoaded.value);
 const page = ref(0);
 const pageSize = 12;
 
@@ -585,6 +639,11 @@ const fetchEvents = async (pageNumber) => {
           stock: stockTag[1] ? Number(stockTag[1]) : 10,
           category: [...new Set(tTags.length ? tTags : ["Uncategorized"])],
           variations: [...new Set(variationValues)],
+          specs: Object.fromEntries(
+            event.tags
+              .filter((tag) => tag[0] === "spec" && tag[1] && tag[2])
+              .map((tag) => [String(tag[1]).trim(), String(tag[2]).trim()]),
+          ),
         };
       });
 
@@ -593,17 +652,19 @@ const fetchEvents = async (pageNumber) => {
     } else {
       events.value = [...events.value, ...newEvents];
     }
+    hasLoaded.value = true;
   } catch (error) {
+    // leave whatever is already on screen alone: a failed refetch must never
+    // blank the shop out from under someone who is browsing it
     console.error("Failed to load product events", error);
-    if (pageNumber === 0) {
-      events.value = [];
-    }
   } finally {
     isLoading.value = false;
   }
 };
 
 onMounted(async () => {
+  // already fetched earlier in this session: reuse it, no background refetch
+  if (hasLoaded.value) return;
   await fetchEvents(page.value);
 });
 
@@ -621,33 +682,108 @@ const { addToCart } = cartStore;
 const { t } = useI18n({ useScope: "local" });
 
 const minimumStock = ref("");
-const selectedCategory = ref("");
-const selectedVariation = ref("");
+const selectedCategories = ref([]);
+const selectedSpecs = ref({});
 
-const filters = computed(() => {
-  const variationSet = new Set();
-  events.value.forEach((event) => {
-    (event.variations || []).forEach((variation) =>
-      variationSet.add(variation),
-    );
-  });
+// which spec names appear as sidebar filters; empty/absent config shows them all
+const configuredSpecs = computed(() => setup.shopfilters?.specs || []);
 
-  return Array.from(variationSet).map((variation) => ({
-    id: variation.toLowerCase().replace(/\s+/g, "-"),
-    name: variation,
-    options: [
-      { value: variation.toLowerCase().replace(/\s+/g, "-"), label: variation },
-    ],
-  }));
+// --- shared predicates, so the sidebar and the grid agree on what matches ---
+
+const matchesStock = (event) => {
+  const stock = Number(event.stock || 0);
+  if (setup.hideOutOfStock && stock <= 0) return false;
+  // "last" mirrors the Last items badge on the card: low but not sold out
+  return minimumStock.value === "last"
+    ? stock > 0 && stock < 5
+    : stock >= Number(minimumStock.value || 0);
+};
+
+// any ticked category matches; none ticked means no category filter
+const matchesCategories = (event) =>
+  selectedCategories.value.length
+    ? (event.category || []).some((category) =>
+        selectedCategories.value.includes(category),
+      )
+    : true;
+
+const specEquals = (event, name, value) =>
+  String((event.specs || {})[name] || "").toLowerCase() ===
+  String(value).toLowerCase();
+
+// every chosen spec must match; `exclude` leaves one group out, which is what
+// lets that group list the options still reachable rather than just its own
+const matchesSpecs = (event, exclude = null) =>
+  Object.entries(selectedSpecs.value).every(
+    ([name, value]) =>
+      name === exclude || !value || specEquals(event, name, value),
+  );
+
+// --- sidebar options, faceted against the other filters ---
+
+const specFilters = computed(() => {
+  const allNames = new Set();
+  events.value.forEach((event) =>
+    Object.keys(event.specs || {}).forEach((name) => allNames.add(name)),
+  );
+
+  const wanted = configuredSpecs.value.length
+    ? configuredSpecs.value
+    : [...allNames];
+
+  return wanted
+    .filter((name) => allNames.has(name))
+    .map((name) => {
+      // what is still available once every OTHER filter is applied, so a
+      // customer can never pick a combination that returns nothing
+      const reachable = events.value.filter(
+        (event) =>
+          matchesStock(event) &&
+          matchesCategories(event) &&
+          matchesSpecs(event, name),
+      );
+
+      // deduped case-insensitively, keeping the first casing seen
+      const values = new Map();
+      reachable.forEach((event) => {
+        const value = (event.specs || {})[name];
+        if (!value) return;
+        const key = value.toLowerCase();
+        if (!values.has(key)) values.set(key, value);
+      });
+
+      // keep the active choice on screen even if nothing else reaches it,
+      // otherwise there would be no way to click it off again
+      const active = selectedSpecs.value[name];
+      if (active && !values.has(String(active).toLowerCase())) {
+        values.set(String(active).toLowerCase(), active);
+      }
+
+      return {
+        id: name.toLowerCase().replace(/\s+/g, "-"),
+        name,
+        options: [...values.values()].map((value) => ({
+          value: value.toLowerCase().replace(/\s+/g, "-"),
+          label: value,
+        })),
+      };
+    })
+    .filter((group) => group.options.length > 0);
 });
 
 const categories = computed(() => {
-  const categorySet = new Set();
-  events.value.forEach((event) => {
-    (event.category || []).forEach((category) => categorySet.add(category));
-  });
+  const reachable = events.value.filter(
+    (event) => matchesStock(event) && matchesSpecs(event),
+  );
 
-  return Array.from(categorySet).map((category) => ({
+  const names = new Set();
+  reachable.forEach((event) =>
+    (event.category || []).forEach((category) => names.add(category)),
+  );
+  // ticked categories stay listed so they can always be unticked
+  selectedCategories.value.forEach((category) => names.add(category));
+
+  return [...names].map((category) => ({
     id: category.toLowerCase().replace(/\s+/g, "-"),
     name: category,
     options: [
@@ -656,29 +792,31 @@ const categories = computed(() => {
   }));
 });
 
+// radios don't deselect natively, so clicking the active one clears it
+const toggleStock = (value) => {
+  minimumStock.value = minimumStock.value === value ? "" : value;
+};
+
+const toggleSpec = (name, value) => {
+  if (selectedSpecs.value[name] === value) {
+    delete selectedSpecs.value[name];
+  } else {
+    selectedSpecs.value[name] = value;
+  }
+};
+
 const resetFilters = () => {
-  selectedCategory.value = "";
-  selectedVariation.value = "";
+  selectedCategories.value = [];
+  selectedSpecs.value = {};
   minimumStock.value = "";
 };
 
-const filteredEvents = computed(() => {
-  return events.value.filter((event) => {
-    const outOfStockHidden =
-      setup.hideOutOfStock && Number(event.stock || 0) <= 0;
-    const stockMatch =
-      !outOfStockHidden &&
-      Number(event.stock || 0) >= Number(minimumStock.value || 0);
-    const categoryMatch = selectedCategory.value
-      ? (event.category || []).includes(selectedCategory.value)
-      : true;
-    const variationMatch = selectedVariation.value
-      ? (event.variations || []).includes(selectedVariation.value)
-      : true;
-
-    return stockMatch && categoryMatch && variationMatch;
-  });
-});
+const filteredEvents = computed(() =>
+  events.value.filter(
+    (event) =>
+      matchesStock(event) && matchesCategories(event) && matchesSpecs(event),
+  ),
+);
 
 const mobileMenuOpen = ref(false);
 const mobileFiltersOpen = ref(false);
@@ -694,7 +832,9 @@ const mobileFiltersOpen = ref(false);
     "Inventory": "Lager",
     "title": "Se alle vores produkter",
     "subtitle": "Opdag alle vores produkter, der er tilgængelige gennem bitcoin eller lightning-køb!",
-    "Allitems": "Alle varer"
+    "Allitems": "Alle varer",
+    "Attributes": "Egenskaber",
+    "Lastremaining": "Sidste stykker"
   },
   "de": {
     "Addtocart": "In den Warenkorb",
@@ -705,7 +845,9 @@ const mobileFiltersOpen = ref(false);
     "Inventory": "Inventar",
     "title": "Durchsuchen Sie unsere Produkte",
     "subtitle": "Entdecken Sie alle unsere Produkte, die über Bitcoin oder Lightning-Kauf verfügbar sind!",
-    "Allitems": "Alle Artikel"
+    "Allitems": "Alle Artikel",
+    "Attributes": "Eigenschaften",
+    "Lastremaining": "Letzte Exemplare"
   },
   "en": {
     "Addtocart": "Add to cart",
@@ -716,7 +858,9 @@ const mobileFiltersOpen = ref(false);
     "Inventory": "Inventory",
     "title": "Browse our products",
     "subtitle": "Discover all our products that are available through bitcoin or lightning purchase!",
-    "Allitems": "All items"
+    "Allitems": "All items",
+    "Attributes": "Attributes",
+    "Lastremaining": "Last Remaining"
   },
   "es": {
     "Addtocart": "Añadir a la cesta",
@@ -727,7 +871,9 @@ const mobileFiltersOpen = ref(false);
     "Inventory": "Inventario",
     "title": "Explora nuestros productos",
     "subtitle": "¡Descubre todos nuestros productos disponibles para compra con bitcoin o lightning!",
-    "Allitems": "Todos los artículos"
+    "Allitems": "Todos los artículos",
+    "Attributes": "Atributos",
+    "Lastremaining": "Últimas unidades"
   },
   "fr": {
     "Addtocart": "Ajouter au panier",
@@ -738,7 +884,9 @@ const mobileFiltersOpen = ref(false);
     "Inventory": "Inventaire",
     "title": "Parcourir nos produits",
     "subtitle": "Découvrez tous nos produits disponibles à l'achat via bitcoin ou lightning!",
-    "Allitems": "Tous les articles"
+    "Allitems": "Tous les articles",
+    "Attributes": "Attributs",
+    "Lastremaining": "Derniers exemplaires"
   },
   "nl": {
     "Addtocart": "In de winkelwagen",
@@ -749,7 +897,9 @@ const mobileFiltersOpen = ref(false);
     "Inventory": "Voorraad",
     "title": "Blader door onze producten",
     "subtitle": "Ontdek al onze producten die beschikbaar zijn voor aankoop via bitcoin of lightning!",
-    "Allitems": "Alle artikelen"
+    "Allitems": "Alle artikelen",
+    "Attributes": "Kenmerken",
+    "Lastremaining": "Laatste exemplaren"
   },
   "pt": {
     "Addtocart": "Adicionar ao carrinho",
@@ -760,7 +910,9 @@ const mobileFiltersOpen = ref(false);
     "Inventory": "Inventário",
     "title": "Veja todos os nossos produtos",
     "subtitle": "Descubra todos os nossos produtos disponíveis para compra com bitcoin ou lightning!",
-    "Allitems": "Todos os itens"
+    "Allitems": "Todos os itens",
+    "Attributes": "Atributos",
+    "Lastremaining": "Últimas unidades"
   }
 }
 </i18n>
