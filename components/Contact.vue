@@ -256,7 +256,7 @@ const buildMessage = () => {
 };
 
 const sendNostrDm = async (payload) => {
-  const inboxRelays = (data.nostrInboxRelays || []).filter(Boolean);
+  const inboxRelays = await resolveInboxRelays();
   if (!inboxRelays.length) {
     throw new Error("No inbox relays configured for NIP-17 DM.");
   }

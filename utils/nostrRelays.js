@@ -1,11 +1,13 @@
 import { bech32 } from "bech32";
 import setup from "~/config/setup";
 
-// NIP-65: the owner publishes their relay list as a kind 10002 event.
-// Reading it at runtime means the shop follows the owner's relays instead of
-// a list typed into config/setup.json that silently rots when a relay dies.
-// setup.relays stays as the bootstrap set (where we look for the list) and as
-// the fallback when no list is found.
+// The owner publishes relay lists as replaceable events:
+//   kind 10002 (NIP-65): relays to read their public notes from
+//   kind 10050 (NIP-17): relays where they receive private DMs
+// Reading them at runtime means the shop follows the owner's relays instead of
+// lists typed into config/setup.json that silently rot when a relay dies.
+// The config lists stay as the bootstrap set (where we look the list up) and
+// as the fallback when no list is found.
 
 const MAX_RELAYS = 6;
 const LOOKUP_TIMEOUT_MS = 4000;
@@ -19,7 +21,7 @@ const ownerHex = () => {
 
 // Ask one relay for the newest kind 10002 event. Never rejects: a dead relay
 // just resolves null.
-const fetchRelayList = (url, pubkey) =>
+const fetchRelayList = (url, pubkey, kind) =>
   new Promise((resolve) => {
     let best = null;
     let ws;
@@ -40,7 +42,7 @@ const fetchRelayList = (url, pubkey) =>
     }
     ws.onopen = () =>
       ws.send(
-        JSON.stringify(["REQ", "relays", { kinds: [10002], authors: [pubkey] }]),
+        JSON.stringify(["REQ", "relays", { kinds: [kind], authors: [pubkey] }]),
       );
     ws.onmessage = (msg) => {
       let frame;
@@ -59,23 +61,41 @@ const fetchRelayList = (url, pubkey) =>
     ws.onclose = done;
   });
 
-// "r" tags with no marker, or the "read" marker, are relays to read from.
-const readRelays = (event) =>
-  (event?.tags ?? [])
-    .filter((tag) => tag[0] === "r" && tag[1] && tag[2] !== "write")
-    .map((tag) => tag[1].trim().replace(/\/+$/, ""))
+const wssUrls = (urls) =>
+  urls
+    .filter(Boolean)
+    .map((url) => url.trim().replace(/\/+$/, ""))
     .filter((url) => /^wss:\/\//.test(url));
 
-let cached = null;
+// NIP-65 "r" tags with no marker, or the "read" marker, are relays to read from.
+const readRelays = (event) =>
+  wssUrls(
+    (event?.tags ?? [])
+      .filter((tag) => tag[0] === "r" && tag[2] !== "write")
+      .map((tag) => tag[1]),
+  );
 
-const lookup = async () => {
+// NIP-17 "relay" tags are where the owner receives DMs.
+const dmRelays = (event) =>
+  wssUrls(
+    (event?.tags ?? [])
+      .filter((tag) => tag[0] === "relay")
+      .map((tag) => tag[1]),
+  );
+
+const newestRelayList = async (kind, bootstrap) => {
   const pubkey = ownerHex();
   const events = await Promise.all(
-    setup.relays.map((url) => fetchRelayList(url, pubkey)),
+    bootstrap.map((url) => fetchRelayList(url, pubkey, kind)),
   );
-  const newest = events
-    .filter(Boolean)
-    .sort((a, b) => b.created_at - a.created_at)[0];
+  return events.filter(Boolean).sort((a, b) => b.created_at - a.created_at)[0];
+};
+
+let cached = null;
+let cachedInbox = null;
+
+const lookup = async () => {
+  const newest = await newestRelayList(10002, setup.relays);
   return [
     ...new Set([...readRelays(newest).slice(0, MAX_RELAYS), ...setup.relays]),
   ];
@@ -88,4 +108,20 @@ export const resolveRelays = (extra = []) => {
   if (import.meta.server) return Promise.resolve([...setup.relays, ...extra]);
   cached ??= lookup().catch(() => [...setup.relays]);
   return cached.then((urls) => [...new Set([...urls, ...extra])]);
+};
+
+// Relay URLs to publish DMs to: the owner's NIP-17 kind 10050 list. Falls back
+// to setup.nostrInboxRelays when no list is found. Looked up once per page
+// load. Always resolves.
+export const resolveInboxRelays = () => {
+  const fallback = wssUrls(setup.nostrInboxRelays || []);
+  cachedInbox ??= newestRelayList(10050, [
+    ...new Set([...setup.relays, ...fallback]),
+  ])
+    .then((event) => {
+      const urls = dmRelays(event).slice(0, MAX_RELAYS);
+      return urls.length ? urls : fallback;
+    })
+    .catch(() => fallback);
+  return cachedInbox;
 };

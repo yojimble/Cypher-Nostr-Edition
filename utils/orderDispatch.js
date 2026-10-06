@@ -65,7 +65,7 @@ export const buildOrderMessage = ({
 };
 
 const sendNostrOrderDm = async (payload, config) => {
-  const inboxRelays = (config.nostrInboxRelays || []).filter(Boolean);
+  const inboxRelays = await resolveInboxRelays();
   if (!inboxRelays.length) {
     throw new Error("No inbox relays configured for order DM.");
   }
