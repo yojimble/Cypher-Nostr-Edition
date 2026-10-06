@@ -134,21 +134,28 @@ export const resolveInboxRelays = () => {
   return cachedInbox;
 };
 
-const QUIET_MS = 1500;
-const HARD_TIMEOUT_MS = 7000;
+const GRACE_MS = 2500;
+const HARD_TIMEOUT_MS = 8000;
+const POLL_MS = 100;
 
-// Like ndk.fetchEvents, but does not wait for every relay to finish. fetchEvents
+// Like ndk.fetchEvents, but does not hang on a silent relay. fetchEvents
 // resolves only once all relays have answered, so one silent relay in the
 // owner's list left the shop, longform and gallery empty while single-event
-// fetches (profile) worked. This resolves once events stop arriving for
-// QUIET_MS, or at HARD_TIMEOUT_MS, with whatever has arrived. Never rejects.
+// fetches (profile) worked. This resolves as soon as every relay that is
+// connected has finished (EOSE), so a listing that lives on one relay is not
+// missed. A relay that connects but never answers is cut off GRACE_MS after
+// NDK's own early "eose", and HARD_TIMEOUT_MS ends everything. It resolves
+// with whatever arrived and never rejects.
 export const fetchEventsFast = (ndk, filter) =>
   new Promise((resolve) => {
     const events = new Map();
-    let quiet;
     let sub;
+    let poll;
+    let grace;
+    let ndkEosed = false;
     const done = () => {
-      clearTimeout(quiet);
+      clearInterval(poll);
+      clearTimeout(grace);
       clearTimeout(hard);
       try {
         sub?.stop();
@@ -158,9 +165,16 @@ export const fetchEventsFast = (ndk, filter) =>
       resolve(new Set(events.values()));
     };
     const hard = setTimeout(done, HARD_TIMEOUT_MS);
-    // NDK emits "eose" once about half the connected relays have answered. Keep
-    // listening for QUIET_MS after that so a slower relay holding the events
-    // (nos.lol for the recipes) is not cut off.
+
+    const allConnectedRelaysDone = () => {
+      const connected = new Set(ndk.pool.connectedRelays().map((r) => r.url));
+      const asked = [...(sub.relayFilters?.keys() ?? [])].filter((url) =>
+        connected.has(url),
+      );
+      const answered = new Set([...sub.eosesSeen].map((relay) => relay.url));
+      return asked.length > 0 && asked.every((url) => answered.has(url));
+    };
+
     sub = ndk.subscribe(filter, { closeOnEose: false });
     sub.on("event", (event) => {
       const key = event.deduplicationKey?.() ?? event.id;
@@ -168,13 +182,14 @@ export const fetchEventsFast = (ndk, filter) =>
       if ((events.get(key)?.created_at ?? 0) <= event.created_at) {
         events.set(key, event);
       }
-      clearTimeout(quiet);
-      quiet = setTimeout(done, QUIET_MS);
     });
     sub.on("eose", () => {
-      clearTimeout(quiet);
-      quiet = setTimeout(done, QUIET_MS);
+      ndkEosed = true;
+      grace ??= setTimeout(done, GRACE_MS);
     });
+    poll = setInterval(() => {
+      if (ndkEosed && allConnectedRelaysDone()) done();
+    }, POLL_MS);
   });
 
 // Newest event matching the filter, or null. ndk.fetchEvent returns whichever
