@@ -4,7 +4,6 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import setup from "~/config/setup";
 import NDK from "@nostr-dev-kit/ndk";
 
 const props = defineProps({
@@ -40,7 +39,7 @@ const withTimeout = (promise, timeoutMs, label) => {
 
 onMounted(async () => {
   try {
-    const urls = [...new Set([...setup.relays, ...props.relays])];
+    const urls = await resolveRelays(props.relays);
     const ndk = new NDK({ explicitRelayUrls: urls });
     await withTimeout(ndk.connect(2000), 8000, "Relay connection");
 

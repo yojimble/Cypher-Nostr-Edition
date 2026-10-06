@@ -82,7 +82,7 @@ watch(fetchedEvent, (newVal) => {
 onMounted(async () => {
   totalItems.value = store.getTotalItems();
 
-  const ndk = new NDK({ explicitRelayUrls: data.relays });
+  const ndk = new NDK({ explicitRelayUrls: await resolveRelays() });
 
   await ndk.connect(2000);
 

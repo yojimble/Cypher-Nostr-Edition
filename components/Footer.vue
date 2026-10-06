@@ -23,7 +23,7 @@ const skHex = npubToHex(data.nostradmin);
 const fetchedEvent = ref('');
 
 onMounted(async () => {
-  const ndk = new NDK({ explicitRelayUrls: data.relays });
+  const ndk = new NDK({ explicitRelayUrls: await resolveRelays() });
 
   await ndk.connect(2000);
 
