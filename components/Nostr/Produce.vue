@@ -610,6 +610,9 @@ const fetchEvents = async (pageNumber) => {
     const isVisible = (event) =>
       !event.tags.some((tag) => tag[0] === "visibility" && tag[1] === "hidden");
 
+    const isSold = (event) =>
+      event.tags.some((tag) => tag[0] === "status" && tag[1] === "sold");
+
     const newEvents = Array.from(fetchedEvents)
       .filter(isVisible)
       .slice(pageNumber * pageSize, (pageNumber + 1) * pageSize)
@@ -642,7 +645,9 @@ const fetchEvents = async (pageNumber) => {
           title: titleTag ? titleTag[1] : "Untitled Event",
           price: priceTag ? priceTag[1] : "0",
           denomination: priceTag ? priceTag[2] : "0",
-          stock: stockTag[1] ? Number(stockTag[1]) : 10,
+          // NIP-99 status "sold" means sold out, whatever the stock tag says
+          // (listing tools often leave the old count in place)
+          stock: isSold(event) ? 0 : stockTag[1] ? Number(stockTag[1]) : 10,
           category: [...new Set(tTags.length ? tTags : ["Uncategorized"])],
           variations: [...new Set(variationValues)],
           specs: Object.fromEntries(
