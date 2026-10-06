@@ -90,9 +90,10 @@
                 class="flex items-center text-sm font-medium text-gray-900 dark:text-white"
               >
                 <span
-                  class="flex w-2.5 h-2.5 bg-green-400 rounded-full mr-1.5 flex-shrink-0"
+                  class="flex w-2.5 h-2.5 rounded-full mr-1.5 flex-shrink-0"
+                  :class="isOutOfStock ? 'bg-red-400' : 'bg-green-400'"
                 ></span>
-                {{ t("Instock") }}
+                {{ isOutOfStock ? t("Nostock") : t("Instock") }}
               </span>
             </div>
 
@@ -103,9 +104,9 @@
 
             <div class="mt-6">
               <button
-                class="snipcart-add-item max-w-xs flex-1 bg-colorBtnLight hover:bg-colorBtnHoverLight dark:bg-colorBtnDark dark:hover:bg-colorBtnHoverDark border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white dark:text-black dark:hover:text-white sm:w-full"
+                class="snipcart-add-item disabled:opacity-50 disabled:cursor-not-allowed max-w-xs flex-1 bg-colorBtnLight hover:bg-colorBtnHoverLight dark:bg-colorBtnDark dark:hover:bg-colorBtnHoverDark border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white dark:text-black dark:hover:text-white sm:w-full"
                 @click="cartAddStore()"
-                :disabled="event.stock === 0"
+                :disabled="isOutOfStock"
               >
                 {{ t("Addtocart") }}
               </button>
@@ -179,7 +180,7 @@
 
 <script setup>
 import { TabGroup, TabList, TabPanels, Tab, TabPanel } from "@headlessui/vue";
-import { ref, onBeforeMount } from "vue";
+import { ref, computed, onBeforeMount } from "vue";
 import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
 import setup from "~/config/setup";
@@ -266,8 +267,17 @@ onBeforeMount(async () => {
   }
 });
 
+// sold out: NIP-99 status "sold", or a stock tag at zero. The page used to
+// ignore both, so a direct link to a sold item looked available.
+const isOutOfStock = computed(() => {
+  const tags = event.value?.tags ?? [];
+  if (tags.some((tag) => tag[0] === "status" && tag[1] === "sold")) return true;
+  const stock = tags.find((tag) => tag[0] === "stock")?.[1];
+  return stock !== undefined && stock !== "" && Number(stock) <= 0;
+});
+
 function cartAddStore() {
-  if (event.value) {
+  if (event.value && !isOutOfStock.value) {
     addToCart({
       id: event.value.id,
       amount: 1,
