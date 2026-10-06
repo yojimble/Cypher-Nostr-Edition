@@ -53,7 +53,7 @@ const fetchEvents = async (pageNumber) => {
 
     const filter = { kinds: [30023], authors: [skHex] };
     const fetchedEvents = await withTimeout(
-      ndk.fetchEvents(filter),
+      fetchEventsFast(ndk, filter),
       10000,
       "Longform fetch",
     );

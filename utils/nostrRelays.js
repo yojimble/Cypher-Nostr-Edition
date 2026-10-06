@@ -2,7 +2,7 @@ import { bech32 } from "bech32";
 import setup from "~/config/setup";
 
 // The owner publishes relay lists as replaceable events:
-//   kind 10002 (NIP-65): relays to read their public notes from
+//   kind 10002 (NIP-65): relays they publish their public notes to
 //   kind 10050 (NIP-17): relays where they receive private DMs
 // Reading them at runtime means the shop follows the owner's relays instead of
 // lists typed into config/setup.json that silently rot when a relay dies.
@@ -10,6 +10,11 @@ import setup from "~/config/setup";
 // as the fallback when no list is found.
 
 const MAX_RELAYS = 6;
+
+// Relays that demand NIP-42 auth, which the app never answers. They accept the
+// connection and then never finish a query, which stalls the whole fetch (the
+// shop hung on its spinner because of atlas.nostr.land once before).
+const AUTH_ONLY_RELAYS = ["wss://atlas.nostr.land"];
 const LOOKUP_TIMEOUT_MS = 4000;
 
 const ownerHex = () => {
@@ -65,13 +70,16 @@ const wssUrls = (urls) =>
   urls
     .filter(Boolean)
     .map((url) => url.trim().replace(/\/+$/, ""))
-    .filter((url) => /^wss:\/\//.test(url));
+    .filter((url) => /^wss:\/\//.test(url))
+    .filter((url) => !AUTH_ONLY_RELAYS.includes(url));
 
-// NIP-65 "r" tags with no marker, or the "read" marker, are relays to read from.
-const readRelays = (event) =>
+// NIP-65 "r" tags with no marker, or the "write" marker, are where the owner
+// publishes. That is where their own notes, shop listings and longform live,
+// so it is what we read from. ("read" relays are where others reach them.)
+const authorRelays = (event) =>
   wssUrls(
     (event?.tags ?? [])
-      .filter((tag) => tag[0] === "r" && tag[2] !== "write")
+      .filter((tag) => tag[0] === "r" && tag[2] !== "read")
       .map((tag) => tag[1]),
   );
 
@@ -97,7 +105,7 @@ let cachedInbox = null;
 const lookup = async () => {
   const newest = await newestRelayList(10002, setup.relays);
   return [
-    ...new Set([...readRelays(newest).slice(0, MAX_RELAYS), ...setup.relays]),
+    ...new Set([...authorRelays(newest).slice(0, MAX_RELAYS), ...setup.relays]),
   ];
 };
 
@@ -125,3 +133,36 @@ export const resolveInboxRelays = () => {
     .catch(() => fallback);
   return cachedInbox;
 };
+
+const QUIET_MS = 1500;
+const HARD_TIMEOUT_MS = 7000;
+
+// Like ndk.fetchEvents, but does not wait for every relay to finish. fetchEvents
+// resolves only once all relays have answered, so one silent relay in the
+// owner's list left the shop, longform and gallery empty while single-event
+// fetches (profile) worked. This resolves once events stop arriving for
+// QUIET_MS, or at HARD_TIMEOUT_MS, with whatever has arrived. Never rejects.
+export const fetchEventsFast = (ndk, filter) =>
+  new Promise((resolve) => {
+    const events = new Map();
+    let quiet;
+    let sub;
+    const done = () => {
+      clearTimeout(quiet);
+      clearTimeout(hard);
+      try {
+        sub?.stop();
+      } catch {
+        // already stopped
+      }
+      resolve(new Set(events.values()));
+    };
+    const hard = setTimeout(done, HARD_TIMEOUT_MS);
+    sub = ndk.subscribe(filter, { closeOnEose: true });
+    sub.on("event", (event) => {
+      events.set(event.deduplicationKey?.() ?? event.id, event);
+      clearTimeout(quiet);
+      quiet = setTimeout(done, QUIET_MS);
+    });
+    sub.on("eose", done);
+  });

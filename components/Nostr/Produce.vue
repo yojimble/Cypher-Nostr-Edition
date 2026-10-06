@@ -603,7 +603,7 @@ const fetchEvents = async (pageNumber) => {
     await withTimeout(ndk.connect(2000), 8000);
 
     const filter = { kinds: [30402], authors: [skHex] };
-    const fetchedEvents = await withTimeout(ndk.fetchEvents(filter), 10000);
+    const fetchedEvents = await fetchEventsFast(ndk, filter);
 
     const newEvents = Array.from(fetchedEvents)
       .slice(pageNumber * pageSize, (pageNumber + 1) * pageSize)

@@ -223,7 +223,7 @@ onMounted(async () => {
 
     const filter = { kinds: [1], authors: [skHex] };
     const fetchedEvents = await withTimeout(
-      ndk.fetchEvents(filter),
+      fetchEventsFast(ndk, filter),
       10000,
       "Event fetch",
     );
