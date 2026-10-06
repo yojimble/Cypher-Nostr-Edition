@@ -605,7 +605,13 @@ const fetchEvents = async (pageNumber) => {
     const filter = { kinds: [30402], authors: [skHex] };
     const fetchedEvents = await fetchEventsFast(ndk, filter);
 
+    // NIP-99 listings from Plebeian/Gamma carry ["visibility", "hidden" |
+    // "on-sale" | "pre-order"]: the owner hides a listing by setting it hidden
+    const isVisible = (event) =>
+      !event.tags.some((tag) => tag[0] === "visibility" && tag[1] === "hidden");
+
     const newEvents = Array.from(fetchedEvents)
+      .filter(isVisible)
       .slice(pageNumber * pageSize, (pageNumber + 1) * pageSize)
       .map((event) => {
         const imageTag = event.tags.find((tag) => tag[0] === "image");
