@@ -55,7 +55,10 @@ onBeforeMount(async () => {
       ids: [slugroute],
     };
 
-    const fetchedEvent = await withTimeout(ndk.fetchEvent(filter), 10000); // Assuming fetchEvent fetches a single event
+    const fetchedEvent = await withTimeout(
+      fetchNewestEvent(ndk, filter),
+      10000,
+    ); // Assuming fetchEvent fetches a single event
     event.value = fetchedEvent || null; // Assign the fetched event or null if not found
 
     // Extract and set markdown content from the event

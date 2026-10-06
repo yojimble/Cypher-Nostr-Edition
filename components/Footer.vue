@@ -29,7 +29,7 @@ onMounted(async () => {
 
   const filter = { kinds: [0], authors: [skHex] };
 
-  const event = await ndk.fetchEvent(filter);
+  const event = await fetchNewestEvent(ndk, filter);
 
   if (event && event.content) {
     fetchedEvent.value = event.content;

@@ -51,8 +51,7 @@ const npubToHex = (npub) => {
 
 const skHex = npubToHex(data.nostradmin);
 
-const fetchedEvent = ref('');
-
+const fetchedEvent = ref("");
 
 // Watch for changes in the cartItems array
 watch(
@@ -60,24 +59,19 @@ watch(
   () => {
     totalItems.value = store.getTotalItems();
   },
-  { deep: true }
+  { deep: true },
 );
-
-
-
 
 watch(fetchedEvent, (newVal) => {
   if (newVal) {
     try {
       eventData.value = JSON.parse(newVal);
     } catch (error) {
-      console.error('Error parsing event data:', error);
+      console.error("Error parsing event data:", error);
       eventData.value = null;
     }
   }
 });
-
-
 
 onMounted(async () => {
   totalItems.value = store.getTotalItems();
@@ -88,21 +82,18 @@ onMounted(async () => {
 
   const filter = { kinds: [0], authors: [skHex] };
 
-  const event = await ndk.fetchEvent(filter);
+  const event = await fetchNewestEvent(ndk, filter);
 
   if (event && event.content) {
     fetchedEvent.value = event.content;
   } else {
-    fetchedEvent.value = 'No event content found';
+    fetchedEvent.value = "No event content found";
   }
 
-  console.log(fetchedEvent.value)
-
+  console.log(fetchedEvent.value);
 });
 
 const eventData = ref(null);
-
-
 </script>
 
 <template>
@@ -119,16 +110,23 @@ const eventData = ref(null);
 
           <!-- <img
             v-if="data.logo"
-            :class="[data.logodark ? 'block dark:hidden h-12' : '', '']"
+            :class="[data.logodark ? 'block dark:hidden h-8 sm:h-12' : '', '']"
             :src="'/project/' + data.logoimage"
             :alt="data.name"
           />
           <img
             v-if="data.logodark"
-            class="hidden dark:block h-12"
+            class="hidden dark:block h-8 sm:h-12"
             :src="'/project/' + data.logodarkimage"
             :alt="data.name"
           /> -->
+
+          <img
+            v-if="eventData && eventData.picture"
+            :src="eventData.picture"
+            :alt="eventData.name || data.name"
+            class="mt-1.5 sm:m-2 sm:ml-2 h-8 sm:h-10 sm:w-10 rounded-full object-cover"
+          />
 
           <span
             v-if="eventData"
@@ -296,7 +294,7 @@ const eventData = ref(null);
         </NuxtLink>
 
         <a
-          :href="'nostr:' +data.nostradmin"
+          :href="'nostr:' + data.nostradmin"
           target="_blank"
           class="text-colorHighLight hover:text-colorHoverHighLight dark:text-colorHighDark dark:hover:text-colorHoverHighDark inline-block mx-3"
         >
@@ -359,14 +357,14 @@ const eventData = ref(null);
       >
         <div class="flex items-center justify-between">
           <NuxtLink to="/" class="-m-1.5 p-1.5">
-          <span
-            v-if="eventData"
-            class="m-2 ml-4 text-2xl font-black dark:text-white uppercase"
-            >{{ eventData.name }}</span
-          >
-        </NuxtLink>
+            <span
+              v-if="eventData"
+              class="m-2 ml-4 text-lg font-black dark:text-white uppercase"
+              >{{ eventData.name }}</span
+            >
+          </NuxtLink>
 
-<!-- 
+          <!-- 
 
 
             <img

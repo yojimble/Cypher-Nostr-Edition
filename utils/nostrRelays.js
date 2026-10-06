@@ -163,7 +163,11 @@ export const fetchEventsFast = (ndk, filter) =>
     // (nos.lol for the recipes) is not cut off.
     sub = ndk.subscribe(filter, { closeOnEose: false });
     sub.on("event", (event) => {
-      events.set(event.deduplicationKey?.() ?? event.id, event);
+      const key = event.deduplicationKey?.() ?? event.id;
+      // replaceable events share a key across versions: keep the newest
+      if ((events.get(key)?.created_at ?? 0) <= event.created_at) {
+        events.set(key, event);
+      }
       clearTimeout(quiet);
       quiet = setTimeout(done, QUIET_MS);
     });
@@ -172,3 +176,13 @@ export const fetchEventsFast = (ndk, filter) =>
       quiet = setTimeout(done, QUIET_MS);
     });
   });
+
+// Newest event matching the filter, or null. ndk.fetchEvent returns whichever
+// relay answers first, which for replaceable events (profiles) can be a stale
+// copy, and it can stall on a silent relay. Never rejects.
+export const fetchNewestEvent = async (ndk, filter) => {
+  const events = await fetchEventsFast(ndk, filter);
+  return (
+    Array.from(events).sort((a, b) => b.created_at - a.created_at)[0] ?? null
+  );
+};

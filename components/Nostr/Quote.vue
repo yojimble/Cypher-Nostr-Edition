@@ -71,7 +71,7 @@ onMounted(async () => {
     await withTimeout(ndk.connect(2000), 8000, "Relay connection");
 
     const event = await withTimeout(
-      ndk.fetchEvent({ ids: [props.id] }),
+      fetchNewestEvent(ndk, { ids: [props.id] }),
       10000,
       "Quoted note fetch",
     );
@@ -79,7 +79,7 @@ onMounted(async () => {
 
     if (event) {
       const meta = await withTimeout(
-        ndk.fetchEvent({ kinds: [0], authors: [event.pubkey] }),
+        fetchNewestEvent(ndk, { kinds: [0], authors: [event.pubkey] }),
         8000,
         "Quoted author fetch",
       );

@@ -237,7 +237,10 @@ onBeforeMount(async () => {
       ids: [slugroute],
     };
 
-    const fetchedEvent = await withTimeout(ndk.fetchEvent(filter), 10000);
+    const fetchedEvent = await withTimeout(
+      fetchNewestEvent(ndk, filter),
+      10000,
+    );
     event.value = fetchedEvent || null;
 
     // Extract image URLs if available in tags

@@ -24,8 +24,7 @@ const shortNpub = computed(() => {
 });
 
 const label = computed(
-  () =>
-    profile.value?.display_name || profile.value?.name || shortNpub.value,
+  () => profile.value?.display_name || profile.value?.name || shortNpub.value,
 );
 
 const withTimeout = (promise, timeoutMs, label) => {
@@ -44,7 +43,7 @@ onMounted(async () => {
     await withTimeout(ndk.connect(2000), 8000, "Relay connection");
 
     const meta = await withTimeout(
-      ndk.fetchEvent({ kinds: [0], authors: [props.pubkey] }),
+      fetchNewestEvent(ndk, { kinds: [0], authors: [props.pubkey] }),
       8000,
       "Mention profile fetch",
     );

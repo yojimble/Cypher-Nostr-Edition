@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto p-4 mt-10 relative">
+  <div class="mx-auto p-4 mt-8 relative">
     <UiLoadingBuffer v-if="isLoading" />
     <div v-else-if="eventData" class="p-6 relative z-10 text-center">
       <div class="flex justify-center mb-4">
@@ -23,7 +23,9 @@
         <p>{{ eventData.about || "No About Information" }}</p>
       </div>
 
-      <div class="mt-10 flex items-center justify-center gap-x-6">
+      <div
+        class="mt-10 flex items-center justify-center gap-x-6 flex-col sm:flex-row"
+      >
         <NuxtLink
           :to="localePath('/shop')"
           class="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
@@ -162,7 +164,7 @@ onMounted(async () => {
 
     const filter = { kinds: [0], authors: [skHex] };
     const event = await withTimeout(
-      ndk.fetchEvent(filter),
+      fetchNewestEvent(ndk, filter),
       10000,
       "Profile fetch",
     );
