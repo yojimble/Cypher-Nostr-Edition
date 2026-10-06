@@ -57,7 +57,7 @@
                       Clear Filters
                     </button>
 
-                    <fieldset>
+                    <fieldset v-if="showStockFilter">
                       <legend class="w-full px-2">
                         <button
                           type="button"
@@ -291,7 +291,7 @@
             <div class="hidden lg:block">
               <div class="space-y-2.5">
                 <!-- Inventory Filter -->
-                <fieldset>
+                <fieldset v-if="showStockFilter">
                   <legend
                     class="block text-sm font-medium text-gray-900 dark:text-white"
                   >
@@ -688,6 +688,10 @@ const { addToCart } = cartStore;
 const { t } = useI18n({ useScope: "local" });
 
 const minimumStock = ref("");
+
+// Out-of-stock items are hidden when hideOutOfStock is on, which leaves the
+// Inventory (stock) filter with nothing useful to separate, so drop it too
+const showStockFilter = computed(() => !setup.hideOutOfStock);
 const selectedCategories = ref([]);
 const selectedSpecs = ref({});
 
