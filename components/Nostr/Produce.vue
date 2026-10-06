@@ -57,7 +57,7 @@
                       Clear Filters
                     </button>
 
-                    <fieldset v-if="showStockFilter">
+                    <fieldset>
                       <legend class="w-full px-2">
                         <button
                           type="button"
@@ -73,7 +73,10 @@
                       </legend>
                       <div class="px-4 pb-2 pt-2" id="filter-section-0">
                         <div class="space-y-2">
-                          <div class="flex items-center">
+                          <div
+                            v-if="showAllStockOptions"
+                            class="flex items-center"
+                          >
                             <input
                               id="color-0-mobile"
                               name="inventory"
@@ -89,7 +92,10 @@
                               >{{ t("Allitems") }}</label
                             >
                           </div>
-                          <div class="flex items-center">
+                          <div
+                            v-if="showAllStockOptions"
+                            class="flex items-center"
+                          >
                             <input
                               id="color-1-mobile"
                               name="inventory"
@@ -291,14 +297,14 @@
             <div class="hidden lg:block">
               <div class="space-y-2.5">
                 <!-- Inventory Filter -->
-                <fieldset v-if="showStockFilter">
+                <fieldset>
                   <legend
                     class="block text-sm font-medium text-gray-900 dark:text-white"
                   >
                     {{ t("Inventory") }}
                   </legend>
                   <div class="space-y-3 pt-6">
-                    <div class="flex items-center">
+                    <div v-if="showAllStockOptions" class="flex items-center">
                       <input
                         id="color-0"
                         name="inventory"
@@ -315,7 +321,7 @@
                         >{{ t("Allitems") }}</label
                       >
                     </div>
-                    <div class="flex items-center">
+                    <div v-if="showAllStockOptions" class="flex items-center">
                       <input
                         id="color-1"
                         name="inventory"
@@ -694,9 +700,10 @@ const { t } = useI18n({ useScope: "local" });
 
 const minimumStock = ref("");
 
-// Out-of-stock items are hidden when hideOutOfStock is on, which leaves the
-// Inventory (stock) filter with nothing useful to separate, so drop it too
-const showStockFilter = computed(() => !setup.hideOutOfStock);
+// When out-of-stock items are hidden every visible item is in stock, so the
+// "All items" and "In stock" options separate nothing. "Last remaining" still
+// does, so it stays.
+const showAllStockOptions = computed(() => !setup.hideOutOfStock);
 const selectedCategories = ref([]);
 const selectedSpecs = ref({});
 
