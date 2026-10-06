@@ -158,11 +158,17 @@ export const fetchEventsFast = (ndk, filter) =>
       resolve(new Set(events.values()));
     };
     const hard = setTimeout(done, HARD_TIMEOUT_MS);
-    sub = ndk.subscribe(filter, { closeOnEose: true });
+    // NDK emits "eose" once about half the connected relays have answered. Keep
+    // listening for QUIET_MS after that so a slower relay holding the events
+    // (nos.lol for the recipes) is not cut off.
+    sub = ndk.subscribe(filter, { closeOnEose: false });
     sub.on("event", (event) => {
       events.set(event.deduplicationKey?.() ?? event.id, event);
       clearTimeout(quiet);
       quiet = setTimeout(done, QUIET_MS);
     });
-    sub.on("eose", done);
+    sub.on("eose", () => {
+      clearTimeout(quiet);
+      quiet = setTimeout(done, QUIET_MS);
+    });
   });
