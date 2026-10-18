@@ -57,3 +57,9 @@ npm run lint
 ```bash
 npm run build
 ```
+
+## What it reads from Nostr
+
+- Shop listings: kind 30402 by the `nostradmin` key in `config/setup.json`. Listings with `visibility: hidden` are not shown. `status: sold` or stock 0 counts as sold out, and the `hideOutOfStock` setting hides those items.
+- Relays: the owner's NIP-65 list (kind 10002), falling back to `relays` in `config/setup.json`.
+- Direct-message relays: the owner's NIP-17 list (kind 10050), falling back to `nostrInboxRelays`.
