@@ -33,21 +33,21 @@ const setCurrency = [{ name: "Bitcoin" }, { name: "Sats" }, { name: "Fiat" }];
     <Menu as="div" class="relative ml-3 mr-2">
       <div>
         <MenuButton
-          class="relative flex max-w-xs items-center rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          class="relative flex max-w-xs items-center rounded-full bg-white text-black text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
         >
           <BitcoinIcon
             v-if="filtersList == 'Bitcoin'"
-            class="h-6 w-6"
+            class="h-6 w-6 text-black"
             aria-hidden="true"
           />
           <SatoshiV2Icon
             v-if="filtersList == 'Sats'"
-            class="h-6 w-6"
+            class="h-6 w-6 text-black"
             aria-hidden="true"
           />
           <NoDollarsIcon
             v-if="filtersList == 'Fiat'"
-            class="h-6 w-6"
+            class="h-6 w-6 text-black"
             aria-hidden="true"
           />
         </MenuButton>

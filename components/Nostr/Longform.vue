@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted } from "vue";
-import NDK from "@nostr-dev-kit/ndk";
 import setup from "~/config/setup";
 import { bech32 } from "bech32";
 
@@ -48,6 +47,7 @@ const cleanedContent = (content) => {
 const fetchEvents = async (pageNumber) => {
   isLoading.value = true;
   try {
+    const { default: NDK } = await import("@nostr-dev-kit/ndk");
     const ndk = new NDK({ explicitRelayUrls: await resolveRelays() });
     await withTimeout(ndk.connect(2000), 8000, "Relay connection");
 
@@ -97,35 +97,51 @@ const loadMore = async () => {
 };
 
 const { t } = useI18n({ useScope: "local" });
+
+const reloadPage = () => window.location.reload();
 </script>
 
 <i18n lang="json">
 {
   "da": {
+    "Loadfailed": "Vi kunne ikke indlæse noget lige nu. Relays svarer nogle gange ikke. Genindlæs siden for at prøve igen.",
+    "Reload": "Genindlæs siden",
     "title": "NOTER",
     "subtitle": "Udviklingsnotater med emner fra projekter, men også generelle ting om Bitcoin, Lightning, Nostr, Relay Setup, E-cash, DVM things, udvikling,.."
   },
   "de": {
+    "Loadfailed": "Aktuell konnte nichts geladen werden. Relays antworten manchmal nicht. Lade die Seite neu, um es erneut zu versuchen.",
+    "Reload": "Seite neu laden",
     "title": "NOTIZEN",
     "subtitle": "Entwicklungsnotizen mit Themen aus Projekten, aber auch allgemeine Sachen über Bitcoin, Lightning, Nostr, Nostr, Relay Setup, E-cash, DVM things, Entwicklung,.."
   },
   "en": {
+    "Loadfailed": "We could not load anything right now. Relays sometimes do not respond. Reload the page to try again.",
+    "Reload": "Reload page",
     "title": "NOTES",
     "subtitle": "Development notes with topics from projects but also general stuff about Bitcoin, Lightning, Nostr, Nostr, Relay Setup, E-cash, DVM things, Development,.. "
   },
   "es": {
+    "Loadfailed": "No pudimos cargar nada ahora mismo. A veces los relays no responden. Recarga la página para intentarlo de nuevo.",
+    "Reload": "Recargar la página",
     "title": "NOTAS",
     "subtitle": "Notas de desarrollo con temas de proyectos pero también cosas generales sobre Bitcoin, Lightning, Nostr, Nostr, Relay Setup, E-cash, DVM things, desarrollo,.."
   },
   "fr": {
+    "Loadfailed": "Nous n'avons rien pu charger pour le moment. Les relais ne répondent parfois pas. Rechargez la page pour réessayer.",
+    "Reload": "Recharger la page",
     "title": "NOTES",
     "subtitle": "Notes de développement avec des sujets provenant de projets mais aussi des choses générales sur Bitcoin, Lightning, Nostr, Nostr, Relay Setup, E-cash, DVM things, développement,.."
   },
   "nl": {
+    "Loadfailed": "We konden nu niets laden. Relays reageren soms niet. Laad de pagina opnieuw om het nogmaals te proberen.",
+    "Reload": "Pagina herladen",
     "title": "NOTITIES",
     "subtitle": "Ontwikkelingsnotities met onderwerpen van projecten maar ook algemene dingen over Bitcoin, Lightning, Nostr, Nostr, Relay Setup, E-cash, DVM things, ontwikkeling,.."
   },
   "pt": {
+    "Loadfailed": "Não foi possível carregar nada agora. Às vezes os relays não respondem. Recarregue a página para tentar novamente.",
+    "Reload": "Recarregar a página",
     "title": "NOTAS",
     "subtitle": "Notas de desenvolvimento com tópicos de projetos, mas também coisas gerais sobre Bitcoin, Lightning, Nostr, Nostr, Relay Setup, E-cash, DVM things, desenvolvimento,.."
   }
@@ -148,7 +164,14 @@ const { t } = useI18n({ useScope: "local" });
       <UiLoadingBuffer v-if="isLoading" />
       <div v-else>
         <div v-if="events.length === 0" class="text-center mt-12">
-          <p>No Notes found</p>
+          <p>{{ t("Loadfailed") }}</p>
+          <button
+            type="button"
+            class="mt-4 px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700"
+            @click="reloadPage"
+          >
+            {{ t("Reload") }}
+          </button>
         </div>
         <div
           v-else

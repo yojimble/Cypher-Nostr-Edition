@@ -445,7 +445,14 @@
 
                 <div v-else>
                   <div v-if="events.length === 0" class="text-center">
-                    <p>No Notes found</p>
+                    <p>{{ t("Loadfailed") }}</p>
+                    <button
+                      type="button"
+                      class="mt-4 px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700"
+                      @click="reloadPage"
+                    >
+                      {{ t("Reload") }}
+                    </button>
                   </div>
 
                   <div
@@ -698,6 +705,8 @@ const { addToCart } = cartStore;
 
 const { t } = useI18n({ useScope: "local" });
 
+const reloadPage = () => window.location.reload();
+
 const minimumStock = ref("");
 
 // When out-of-stock items are hidden every visible item is in stock, so the
@@ -846,6 +855,8 @@ const mobileFiltersOpen = ref(false);
 <i18n lang="json">
 {
   "da": {
+    "Loadfailed": "Vi kunne ikke indlæse noget lige nu. Relays svarer nogle gange ikke. Genindlæs siden for at prøve igen.",
+    "Reload": "Genindlæs siden",
     "Addtocart": "Tilføj til kurv",
     "Nostock": "Udsolgt",
     "Lastitems": "Få på lager",
@@ -859,6 +870,8 @@ const mobileFiltersOpen = ref(false);
     "Lastremaining": "Sidste stykker"
   },
   "de": {
+    "Loadfailed": "Aktuell konnte nichts geladen werden. Relays antworten manchmal nicht. Lade die Seite neu, um es erneut zu versuchen.",
+    "Reload": "Seite neu laden",
     "Addtocart": "In den Warenkorb",
     "Nostock": "Ausverkauft",
     "Lastitems": "Letzte Stücke",
@@ -872,6 +885,8 @@ const mobileFiltersOpen = ref(false);
     "Lastremaining": "Letzte Exemplare"
   },
   "en": {
+    "Loadfailed": "We could not load anything right now. Relays sometimes do not respond. Reload the page to try again.",
+    "Reload": "Reload page",
     "Addtocart": "Add to cart",
     "Nostock": "Out of stock",
     "Lastitems": "Last items",
@@ -885,6 +900,8 @@ const mobileFiltersOpen = ref(false);
     "Lastremaining": "Last Remaining"
   },
   "es": {
+    "Loadfailed": "No pudimos cargar nada ahora mismo. A veces los relays no responden. Recarga la página para intentarlo de nuevo.",
+    "Reload": "Recargar la página",
     "Addtocart": "Añadir a la cesta",
     "Nostock": "Agotado",
     "Lastitems": "Últimas piezas",
@@ -898,6 +915,8 @@ const mobileFiltersOpen = ref(false);
     "Lastremaining": "Últimas unidades"
   },
   "fr": {
+    "Loadfailed": "Nous n'avons rien pu charger pour le moment. Les relais ne répondent parfois pas. Rechargez la page pour réessayer.",
+    "Reload": "Recharger la page",
     "Addtocart": "Ajouter au panier",
     "Nostock": "Rupture de stock",
     "Lastitems": "Dernières pièces",
@@ -911,6 +930,8 @@ const mobileFiltersOpen = ref(false);
     "Lastremaining": "Derniers exemplaires"
   },
   "nl": {
+    "Loadfailed": "We konden nu niets laden. Relays reageren soms niet. Laad de pagina opnieuw om het nogmaals te proberen.",
+    "Reload": "Pagina herladen",
     "Addtocart": "In de winkelwagen",
     "Nostock": "Uitverkocht",
     "Lastitems": "Laatste stuks",
@@ -924,6 +945,8 @@ const mobileFiltersOpen = ref(false);
     "Lastremaining": "Laatste exemplaren"
   },
   "pt": {
+    "Loadfailed": "Não foi possível carregar nada agora. Às vezes os relays não respondem. Recarregue a página para tentar novamente.",
+    "Reload": "Recarregar a página",
     "Addtocart": "Adicionar ao carrinho",
     "Nostock": "Fora de estoque",
     "Lastitems": "Últimos itens",

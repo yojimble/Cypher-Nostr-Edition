@@ -176,7 +176,30 @@
               :key="index"
               class="text-sm sm:text-base font-medium text-gray-900 dark:text-gray-100 leading-relaxed"
             >
-              {{ line }}
+              <template v-if="line.toLowerCase().startsWith('nostr:')">
+                Nostr:
+                <span class="inline-block group cursor-pointer" @click="copyToClipboard(line.split(':').slice(1).join(':').trim(), 'nostr')">
+                  <span class="align-middle">{{ line.split(':').slice(1).join(':').trim().slice(0, 14) + '...' + line.split(':').slice(1).join(':').trim().slice(-10) }}</span>
+                  <span class="ml-1 opacity-0 group-hover:opacity-100 transition-opacity align-middle" title="Copy npub">
+                    <CheckIcon v-if="copiedKey === 'nostr'" class="h-4 w-4 inline text-green-500" />
+                    <DocumentDuplicateIcon v-else class="h-4 w-4 inline text-gray-500 hover:text-gray-800 dark:hover:text-gray-200" />
+                  </span>
+                </span>
+              </template>
+              <template v-else-if="line.toLowerCase().startsWith('email:')">
+                Email:
+                <span class="inline-block group">
+                  <a :href="'mailto:' + line.split(':').slice(1).join(':').trim()" class="hover:opacity-70 align-middle">{{ line.split(':').slice(1).join(':').trim() }}</a>
+                  <button @click="copyToClipboard(line.split(':').slice(1).join(':').trim(), 'email')" class="ml-1 opacity-0 group-hover:opacity-100 transition-opacity align-middle" title="Copy email">
+                    <CheckIcon v-if="copiedKey === 'email'" class="h-4 w-4 inline text-green-500" />
+                    <DocumentDuplicateIcon v-else class="h-4 w-4 inline text-gray-500 hover:text-gray-800 dark:hover:text-gray-200" />
+                  </button>
+                </span>
+              </template>
+              <template v-else-if="line.toLowerCase().startsWith('profile:')">
+                Profile: <a :href="line.split(':').slice(1).join(':').trim()" target="_blank" class="underline hover:opacity-70">{{ line.split(':').slice(1).join(':').trim().slice(0, 36) + '...' }}</a>
+              </template>
+              <template v-else>{{ line }}</template>
             </p>
           </div>
         </div>
@@ -191,6 +214,8 @@ import { computed, ref } from "vue";
 import {
   ExclamationTriangleIcon,
   PaperAirplaneIcon,
+  DocumentDuplicateIcon,
+  CheckIcon,
 } from "@heroicons/vue/20/solid";
 
 const firstname = ref("");
@@ -198,6 +223,12 @@ const email = ref("");
 const npub = ref("");
 const message = ref("");
 const warning = ref("");
+const copiedKey = ref("");
+const copyToClipboard = (text, key) => {
+  navigator.clipboard.writeText(text);
+  copiedKey.value = key;
+  setTimeout(() => { copiedKey.value = ""; }, 2000);
+};
 const statusMessage = ref("");
 const isSubmitting = ref(false);
 
@@ -217,7 +248,7 @@ const contactLines = computed(() => {
 
   return [configured.line1, configured.line2, configured.line3]
     .map((line, index) => line || fallback[index])
-    .filter(Boolean)
+    .filter((line) => line && !line.endsWith(": ") && !line.endsWith(":"))
     .slice(0, 3);
 });
 

@@ -10,6 +10,18 @@ export default defineNuxtConfig({
 
   css: ["@/assets/css/main.css"],
 
+  // headings would otherwise render as anchor links (e.g. "## About" ->
+  // a link to #about), which is meaningless on these note pages
+  content: {
+    renderer: {
+      anchorLinks: {
+        h2: false,
+        h3: false,
+        h4: false,
+      },
+    },
+  },
+
   components: {
     global: true,
     dirs: ["~/components"],

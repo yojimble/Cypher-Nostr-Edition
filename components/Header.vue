@@ -34,7 +34,6 @@ import { useProjectStore } from "~/store/shopcart";
 const store = useProjectStore();
 const totalItems = ref(store.getTotalItems());
 
-import NDK from "@nostr-dev-kit/ndk";
 import { bech32 } from "bech32";
 
 const bytesToHex = (bytes) => {
@@ -73,24 +72,29 @@ watch(fetchedEvent, (newVal) => {
   }
 });
 
+const withTimeout = (promise, timeoutMs) =>
+  Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("timeout")), timeoutMs),
+    ),
+  ]);
+
 onMounted(async () => {
   totalItems.value = store.getTotalItems();
 
-  const ndk = new NDK({ explicitRelayUrls: await resolveRelays() });
-
-  await ndk.connect(2000);
-
-  const filter = { kinds: [0], authors: [skHex] };
-
-  const event = await fetchNewestEvent(ndk, filter);
-
-  if (event && event.content) {
-    fetchedEvent.value = event.content;
-  } else {
-    fetchedEvent.value = "No event content found";
+  try {
+    const { default: NDK } = await import("@nostr-dev-kit/ndk");
+    const ndk = new NDK({ explicitRelayUrls: await resolveRelays() });
+    await withTimeout(ndk.connect(2000), 8000);
+    const filter = { kinds: [0], authors: [skHex] };
+    const event = await withTimeout(fetchNewestEvent(ndk, filter), 10000);
+    if (event && event.content) {
+      fetchedEvent.value = event.content;
+    }
+  } catch (error) {
+    console.error("Header: failed to load Nostr profile", error);
   }
-
-  console.log(fetchedEvent.value);
 });
 
 const eventData = ref(null);

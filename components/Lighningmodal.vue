@@ -1,14 +1,13 @@
 <template>
   <div>
-    <div
-      class="inline-flex justify-center rounded-md px-3 py-2 text-sm font-semibold text-black dark:text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+    <button
+      type="button"
+      aria-label="Donate with Lightning"
+      class="inline-flex justify-center rounded-md px-3 py-2 text-sm font-semibold text-black dark:text-white shadow-sm cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+      @click="open = true"
     >
-      <LightningCircleIcon
-        class="h-8 w-8"
-        aria-hidden="true"
-        @click="open = true"
-      />
-    </div>
+      <LightningCircleIcon class="h-8 w-8" aria-hidden="true" />
+    </button>
     <TransitionRoot as="template" :show="open">
       <Dialog class="relative z-10" @close="open = false">
         <TransitionChild
