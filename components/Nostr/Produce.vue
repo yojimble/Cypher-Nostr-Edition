@@ -489,6 +489,20 @@
                           <p class="mt-1 text-sm text-gray-500 line-clamp-2">
                             {{ event.summary }}
                           </p>
+                          <div class="mt-3 flex flex-wrap gap-2">
+                            <span
+                              v-if="event.category && event.category.length"
+                              class="rounded-full border border-gray-300 dark:border-gray-600 px-2 py-0.5 text-xs font-semibold text-gray-700 dark:text-gray-200"
+                            >
+                              {{ event.category[0] }}
+                            </span>
+                            <span
+                              v-if="event.variations && event.variations.length"
+                              class="rounded-full border border-gray-300 dark:border-gray-600 px-2 py-0.5 text-xs font-semibold text-gray-700 dark:text-gray-200"
+                            >
+                              {{ event.variations[0] }}
+                            </span>
+                          </div>
                         </div>
                         <div class="flex justify-between mt-4">
                           <p
